@@ -18,8 +18,10 @@ Use this skill when the user asks for:
 1. Treat the current workspace as the project root unless the user provides a
    different path.
 2. Prefer the bundled plugin runner when available:
-   `bash <installed-plugin-root>/bin/run-presecurity.sh --root "$PWD" <command>`.
-3. If the repository package is installed in the environment, `python3 -m presecurity --root "$PWD" <command>` is also valid.
+   `<installed-plugin-root>/bin/run-presecurity.sh --root . <command>`.
+   Run it directly from the project root. Do not prefix it with `bash` and do
+   not use `$PWD`.
+3. If the repository package is installed in the environment, `python3 -m presecurity --root . <command>` is also valid.
 4. Run `init` for initialization.
 5. Run `scan` to create or refresh
    `.presecurity/scan-plan.json`.
