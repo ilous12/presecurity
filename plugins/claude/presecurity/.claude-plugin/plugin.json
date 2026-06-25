@@ -1,9 +1,12 @@
 {
   "name": "presecurity",
   "version": "0.1.0",
-  "description": "Security checks and safe autofix planning for agent-written code.",
+  "description": "코딩 에이전트가 만든 코드를 OWASP 기준으로 점검하고 안전한 자동수정을 실행합니다.",
   "author": {
     "name": "presecurity"
   },
-  "homepage": "https://github.com/ilous12/presecurity"
+  "homepage": "https://github.com/ilous12/presecurity",
+  "repository": "https://github.com/ilous12/presecurity",
+  "license": "MIT",
+  "keywords": ["security", "sast", "owasp", "autofix", "agent", "보안", "자동수정"]
 }

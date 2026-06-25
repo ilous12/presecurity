@@ -1,5 +1,8 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "presecurity-marketplace",
+  "version": "0.1.0",
+  "description": "Claude Code에서 코딩 에이전트가 만든 코드를 OWASP 기준으로 점검하고 자동 수정하는 보안 플러그인 모음입니다.",
   "owner": {
     "name": "presecurity"
   },
@@ -7,8 +10,12 @@
     {
       "name": "presecurity",
       "source": "./plugins/claude/presecurity",
-      "description": "Agent-native OWASP security scanning and safe autofix planning for Claude Code."
+      "description": "코딩 에이전트가 만든 코드의 보안 이슈를 찾고, 영향도와 수정 계획을 만든 뒤 가능한 항목을 자동 수정합니다.",
+      "version": "0.1.0",
+      "author": {
+        "name": "presecurity"
+      },
+      "category": "security"
     }
   ]
 }
-

@@ -1,5 +1,5 @@
 {
-  "description": "presecurity lightweight scan hook",
+  "description": "presecurity 경량 보안 스캔 훅",
   "hooks": {
     "PostToolUse": [
       {

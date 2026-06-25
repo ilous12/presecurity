@@ -1,5 +1,5 @@
 ---
-description: Initialize, scan, autofix, cleanup, or diagnose presecurity
+description: presecurity 초기화, 스캔, 자동수정, 정리, 진단을 실행합니다
 argument-hint: "init|scan|autofix|cleanup|doctor"
 ---
 
