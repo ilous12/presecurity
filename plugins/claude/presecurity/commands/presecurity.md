@@ -24,9 +24,11 @@ When invoked:
    Do not prefix the command with `bash`, do not use `$PWD`, and do not add
    shell redirection. If the resolved absolute path has no spaces, run it
    without quotes.
-3. For `scan`, read `.presecurity/scan-plan.json` and summarize the impact,
-   highest-risk findings, diff intent summary, and proposed fix order. Do not
-   display false-positive candidates.
+3. For `scan`, read `.presecurity/scan-plan.json` and summarize only the
+   findings recorded there: impact, highest-risk findings, diff intent summary,
+   and proposed fix order. Do not create a false-positive section. If a finding
+   is filtered by the scanner or you conclude it is a false positive, omit it
+   entirely from the user-facing response.
 4. For `autofix`, run the bundled autofix command, rescan, then automatically
    edit any remaining findings from `.presecurity/scan-plan.json` without asking
    the user which item to fix first.

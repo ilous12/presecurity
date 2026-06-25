@@ -108,6 +108,55 @@ def test_scan_omits_sanitized_react_html(tmp_path: Path):
     assert "react-dangerously-set-html" not in {finding["ruleId"] for finding in plan["findings"]}
 
 
+def test_scan_omits_sanitized_react_html_variable(tmp_path: Path):
+    target = tmp_path / "NotiPopupModal.tsx"
+    target.write_text(
+        "const safeHtml = DOMPurify.sanitize(content)\n"
+        "return <div dangerouslySetInnerHTML={{ __html: safeHtml }} />\n",
+        encoding="utf-8",
+    )
+
+    plan = scan(tmp_path)
+
+    assert "react-dangerously-set-html" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
+def test_scan_omits_regexp_exec_false_positive(tmp_path: Path):
+    target = tmp_path / "messageTextParser.ts"
+    target.write_text(
+        "MESSAGE_TEXT_PATTERN.exec(messageContent)\n"
+        "SIMPLE_MESSAGE_TEXT_PATTERN.exec(messageContent)\n",
+        encoding="utf-8",
+    )
+
+    plan = scan(tmp_path)
+
+    assert "node-child-process-exec" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
+def test_scan_detects_real_child_process_exec(tmp_path: Path):
+    (tmp_path / "runner.ts").write_text("child_process.exec(command)\nexec(command)\n", encoding="utf-8")
+
+    plan = scan(tmp_path)
+
+    rule_ids = [finding["ruleId"] for finding in plan["findings"]]
+    assert rule_ids.count("node-child-process-exec") == 2
+
+
+def test_scan_omits_env_backed_fetch_ssrf_false_positive(tmp_path: Path):
+    target = tmp_path / "serverAction.ts"
+    target.write_text(
+        "const url = `${API_BASE_URL}/users`\n"
+        "await fetch(url)\n"
+        "await fetch(`${process.env.API_BASE_URL}/health`)\n",
+        encoding="utf-8",
+    )
+
+    plan = scan(tmp_path)
+
+    assert "ssrf-unvalidated-url" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
 def test_scan_omits_template_and_css_selector_sql_false_positives(tmp_path: Path):
     (tmp_path / "template.ts").write_text("export const example = `SELECT * FROM users WHERE id = ${'demo'}`\n", encoding="utf-8")
     (tmp_path / "useImageExport.ts").write_text("export const css = `user-select: none; color: ${color};`\n", encoding="utf-8")

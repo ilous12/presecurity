@@ -28,6 +28,22 @@ PLACEHOLDER_WORDS = {
     "todo",
     "xxx",
 }
+SANITIZER_TOKENS = ("dompurify.sanitize", "sanitizehtml", "sanitize-html", "sanitize_html")
+SAFE_HTML_NAMES = ("sanitized", "safehtml", "safe_html", "cleanhtml", "clean_html", "trustedhtml", "trusted_html")
+ENV_URL_TOKENS = (
+    "api_base_url",
+    "base_url",
+    "baseurl",
+    "backend_url",
+    "service_url",
+    "internal_api",
+    "internalapi",
+    "process.env",
+    "import.meta.env",
+    "env.",
+    "config.",
+)
+USER_INPUT_TOKENS = ("req.", "request.", "params", "searchparams", "query", "body", "formdata", "headers.get")
 
 
 def is_false_positive(rule_id: str, rel: str, line: str, full_text: str) -> bool:
@@ -41,14 +57,18 @@ def is_false_positive(rule_id: str, rel: str, line: str, full_text: str) -> bool
         return is_test_path(path_parts) or any(word in lowered for word in PLACEHOLDER_WORDS)
     if rule_id == "nextjs-public-secret":
         return any(word in lowered for word in PLACEHOLDER_WORDS)
+    if rule_id == "node-child-process-exec":
+        return bool(re.search(r"\.\s*exec\s*\(", line)) and "child_process.exec" not in lowered
     if rule_id == "react-dangerously-set-html":
-        return any(token in lowered for token in ("dompurify.sanitize", "sanitizehtml", "sanitize-html", "sanitized"))
+        return is_sanitized_react_html(line, full_text)
     if rule_id == "docker-root-user":
         return bool(re.search(r"(?im)^USER\s+\S+", full_text))
     if rule_id == "express-state-changing-route":
         return any(token in lowered for token in ("requireauth", "authenticate", "authorize", "csrf"))
     if rule_id == "ssrf-unvalidated-url":
-        return any(token in lowered for token in ("allowed", "allowlist", "trusted", "internal_only"))
+        return any(token in lowered for token in ("allowed", "allowlist", "trusted", "internal_only")) or is_env_backed_url(
+            line, full_text
+        )
     if rule_id == "sql-string-concat":
         return (
             is_non_runtime_path(path_names)
@@ -80,3 +100,58 @@ def looks_like_selector_or_css(line: str) -> bool:
             "selection",
         )
     )
+
+
+def is_sanitized_react_html(line: str, full_text: str) -> bool:
+    lowered = line.lower()
+    if any(token in lowered for token in SANITIZER_TOKENS):
+        return True
+
+    expression = react_html_expression(line)
+    if not expression:
+        return False
+    expression_lowered = expression.lower()
+    if any(token in expression_lowered for token in SAFE_HTML_NAMES):
+        return True
+    if not re.match(r"^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?$", expression):
+        return False
+
+    assignment_pattern = (
+        rf"(?is)\b(?:const|let|var)\s+{re.escape(expression_lowered)}\s*=\s*"
+        rf"[^;\n]*(?:{'|'.join(re.escape(token) for token in SANITIZER_TOKENS)})"
+    )
+    return bool(re.search(assignment_pattern, full_text.lower()))
+
+
+def react_html_expression(line: str) -> str:
+    match = re.search(r"dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*([^}]+?)\s*\}\}", line)
+    return match.group(1).strip() if match else ""
+
+
+def is_env_backed_url(line: str, full_text: str) -> bool:
+    lowered = line.lower()
+    if any(token in lowered for token in USER_INPUT_TOKENS):
+        return False
+    if any(token in lowered for token in ENV_URL_TOKENS):
+        return True
+
+    argument = ssrf_first_argument(line)
+    if not argument:
+        return False
+    if any(token in argument.lower() for token in USER_INPUT_TOKENS):
+        return False
+    if any(token in argument.lower() for token in ENV_URL_TOKENS):
+        return True
+    if not re.match(r"^[A-Za-z_$][\w$]*$", argument):
+        return False
+
+    assignment_pattern = (
+        rf"(?is)\b(?:const|let|var)\s+{re.escape(argument)}\s*=\s*"
+        rf"[^;\n]*(?:{'|'.join(re.escape(token) for token in ENV_URL_TOKENS)})"
+    )
+    return bool(re.search(assignment_pattern, full_text.lower()))
+
+
+def ssrf_first_argument(line: str) -> str:
+    match = re.search(r"\b(?:fetch|axios|requests|http\.(?:Get|Post))\s*\(\s*([^,\)\n]+)", line)
+    return match.group(1).strip() if match else ""

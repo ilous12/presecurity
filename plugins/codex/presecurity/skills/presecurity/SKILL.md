@@ -42,8 +42,11 @@ For scan results, summarize:
 - whether autofix is available
 - planned order of remediation
 
-Do not show false-positive candidates. If a finding is filtered by the scanner,
-omit it entirely from the user-facing response.
+Do not show false-positive candidates and do not create a separate
+false-positive section. If a finding is filtered by the scanner, omit it
+entirely from the user-facing response. If you conclude a recorded finding is a
+false positive, omit it from the response instead of asking the user to handle
+it.
 
 For autofix, report:
 
