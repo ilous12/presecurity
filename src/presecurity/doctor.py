@@ -6,6 +6,7 @@ import subprocess
 import sys
 from typing import Any
 
+from .i18n import localize_summary, t
 from .rules import SUPPORTED_PLATFORMS, iter_rules
 from .state import state_paths
 
@@ -54,8 +55,8 @@ def is_git_repository(root: Path) -> bool:
 
 
 def print_doctor(result: dict[str, Any]) -> str:
-    lines = ["presecurity doctor", f"- summary: {result['summary']}"]
+    lines = [t("doctor.title"), f"- {t('doctor.summary')}: {localize_summary(result['summary'])}"]
     for item in result["checks"]:
-        status = "ok" if item["ok"] else "missing"
+        status = t("doctor.ok") if item["ok"] else t("doctor.missing")
         lines.append(f"- [{status}] {item['name']}: {item['detail']}")
     return "\n".join(lines)

@@ -6,6 +6,7 @@ import shutil
 
 from .autofix import apply_autofix
 from .doctor import print_doctor, run_doctor
+from .i18n import t
 from .scanner import plan_as_json, print_plan, scan
 from .state import ensure_state, read_plan, state_paths, write_plan
 
@@ -29,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "init":
         paths = ensure_state(root)
-        print(f"presecurity initialized: {paths['dir']}")
+        print(t("init.done", path=paths["dir"]))
         return 0
 
     if args.command == "scan":
@@ -51,17 +52,17 @@ def main(argv: list[str] | None = None) -> int:
 
             print(json.dumps(result, indent=2, sort_keys=True))
         else:
-            print("presecurity autofix summary")
-            print(f"- applied: {len(result['applied'])}")
-            print(f"- skipped: {len(result['skipped'])}")
-            print(f"- remaining findings: {result['remaining']['findings']}")
+            print(t("autofix.title"))
+            print(f"- {t('autofix.applied')}: {len(result['applied'])}")
+            print(f"- {t('autofix.skipped')}: {len(result['skipped'])}")
+            print(f"- {t('autofix.remaining')}: {result['remaining']['findings']}")
         return 0
 
     if args.command == "cleanup":
         paths = state_paths(root)
         if paths["dir"].exists():
             shutil.rmtree(paths["dir"])
-        print(f"presecurity state removed: {paths['dir']}")
+        print(t("cleanup.done", path=paths["dir"]))
         return 0
 
     if args.command == "doctor":

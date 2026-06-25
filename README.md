@@ -1,10 +1,12 @@
 # presecurity
 
+![presecurity logo](assets/presecurity-logo.png)
+
 presecurity는 Claude Code와 Codex Desktop에서 사용하는 **코딩 에이전트용 보안 점검 플러그인**입니다.
 
-개발자가 에이전트에게 코드를 만들거나 수정하게 한 뒤, 바로 `/presecurity scan`을 실행하면 위험한 코드 패턴을 찾아주고, `/presecurity autofix`로 안전하게 바꿀 수 있는 항목만 자동 수정합니다.
+에이전트가 만든 코드를 그대로 믿기 전에, 위험한 패턴을 먼저 확인하고 안전한 수정만 자동으로 적용하도록 돕습니다. 개발자는 `/presecurity scan`으로 문제를 확인하고, `/presecurity autofix`로 확실한 항목만 정리할 수 있습니다.
 
-> English: presecurity is a lightweight security plugin for coding agents. It scans agent-written code, creates a remediation plan, and applies only safe deterministic fixes.
+> English: presecurity is a lightweight security plugin for coding agents. It reviews agent-written code, explains risk, creates a remediation plan, and applies only safe deterministic fixes.
 
 ## 왜 필요한가요?
 
@@ -175,6 +177,24 @@ python3 -m presecurity cleanup
 python3 -m presecurity doctor
 ```
 
+## 언어 지원
+
+실행 결과는 사용자 언어 설정을 따라 한국어 또는 영어로 표시됩니다.
+
+우선순위:
+
+1. `PRESECURITY_LANG`
+2. `LC_ALL`
+3. `LC_MESSAGES`
+4. `LANG`
+
+예:
+
+```bash
+PRESECURITY_LANG=ko python3 -m presecurity scan
+PRESECURITY_LANG=en python3 -m presecurity scan
+```
+
 ## 현재 지원 범위
 
 - OWASP Top 10 기반 경량 SAST
@@ -189,6 +209,7 @@ python3 -m presecurity doctor
 - GitHub Actions
 - 안전한 일부 autofix
 - git diff 기반 변경 의도 요약
+- 한국어/영어 실행 메시지
 
 ## 한계
 
@@ -236,6 +257,11 @@ Command meanings:
 - `autofix`: apply safe deterministic fixes, then rescan.
 - `cleanup`: remove `.presecurity/`.
 - `doctor`: check runtime, git, state files, rules, and platform support.
+
+Language:
+
+- Korean is used when `PRESECURITY_LANG`, `LC_ALL`, `LC_MESSAGES`, or `LANG` starts with `ko`.
+- English is used when the locale starts with `en` or no Korean locale is detected.
 
 ## License
 

@@ -1,7 +1,7 @@
 {
   "name": "presecurity",
   "version": "0.1.0",
-  "description": "Agent-native OWASP security scanning and safe autofix planning for Codex.",
+  "description": "Security checks and safe autofix planning for agent-written code.",
   "author": {
     "name": "presecurity"
   },
@@ -11,17 +11,18 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "presecurity",
-    "shortDescription": "Scan and safely fix security issues while coding with agents.",
-    "longDescription": "presecurity provides OWASP Top 10 oriented lightweight SAST, remediation planning, and safe deterministic autofix for Codex Desktop workflows.",
+    "shortDescription": "Find risky code, plan fixes, and safely autofix what is deterministic.",
+    "longDescription": "presecurity helps teams use coding agents with more confidence. It scans agent-written code for OWASP-oriented risks, explains impact, writes a remediation plan, and applies only safe deterministic fixes.",
     "developerName": "presecurity",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Write"],
     "defaultPrompt": [
-      "/presecurity init",
+      "/presecurity doctor",
       "/presecurity scan",
       "/presecurity autofix"
     ],
-    "brandColor": "#1F7A5C"
+    "brandColor": "#1F7A5C",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
   }
 }
-

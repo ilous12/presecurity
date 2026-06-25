@@ -1,7 +1,7 @@
 {
   "name": "presecurity",
   "version": "0.1.0",
-  "description": "Agent-native OWASP security scanning and safe autofix planning for Claude Code.",
+  "description": "Security checks and safe autofix planning for agent-written code.",
   "author": {
     "name": "presecurity"
   },

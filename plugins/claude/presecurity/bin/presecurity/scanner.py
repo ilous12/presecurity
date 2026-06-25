@@ -7,6 +7,7 @@ import json
 from typing import Any
 
 from .intent import analyze_intent
+from .i18n import t
 from .rules import Rule, iter_rules
 from .state import utc_now
 
@@ -166,18 +167,18 @@ def severity_rank(severity: str) -> int:
 def print_plan(plan: dict[str, Any]) -> str:
     summary = plan["summary"]
     lines = [
-        "presecurity scan summary",
-        f"- files scanned: {summary['filesScanned']}",
-        f"- findings: {summary['findings']} (critical {summary['critical']}, high {summary['high']}, medium {summary['medium']}, low {summary['low']})",
-        f"- autofixable: {summary['autofixable']}",
-        f"- intent: {plan.get('intent', {}).get('summary', 'not available')}",
+        t("scan.title"),
+        f"- {t('scan.files')}: {summary['filesScanned']}",
+        f"- {t('scan.findings')}: {summary['findings']} ({t('scan.findings.counts', critical=summary['critical'], high=summary['high'], medium=summary['medium'], low=summary['low'])})",
+        f"- {t('scan.autofixable')}: {summary['autofixable']}",
+        f"- {t('scan.intent')}: {plan.get('intent', {}).get('summary', 'not available')}",
     ]
     for finding in plan["findings"][:50]:
         lines.append(
             f"- [{finding['severity']}] {finding['file']}:{finding['line']} {finding['ruleId']} - {finding['message']}"
         )
     if len(plan["findings"]) > 50:
-        lines.append(f"- ... {len(plan['findings']) - 50} more findings in .presecurity/scan-plan.json")
+        lines.append(f"- ... {t('scan.more', count=len(plan['findings']) - 50)}")
     return "\n".join(lines)
 
 

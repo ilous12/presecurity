@@ -6,6 +6,8 @@ import re
 import subprocess
 from typing import Any
 
+from .i18n import t
+
 
 @dataclass(frozen=True)
 class ChangedFile:
@@ -22,7 +24,7 @@ def analyze_intent(root: Path, base: str = "HEAD") -> dict[str, Any]:
             "mode": "git-diff",
             "base": base,
             "available": False,
-            "summary": "No git diff available or no changed lines.",
+            "summary": t("intent.none"),
             "changedFiles": [],
             "securityHints": [],
         }
@@ -113,13 +115,10 @@ def classify_hints(path: str, text: str) -> list[str]:
 
 def summarize_intent(changed: list[ChangedFile], hints: list[str]) -> str:
     if not changed:
-        return "No changed files detected."
+        return t("intent.no_changed")
     file_count = len(changed)
     added = sum(item.added for item in changed)
     removed = sum(item.removed for item in changed)
     if hints:
-        return (
-            f"Detected {file_count} changed file(s), +{added}/-{removed} lines. "
-            f"Security-relevant areas: {', '.join(hints[:6])}."
-        )
-    return f"Detected {file_count} changed file(s), +{added}/-{removed} lines. No high-signal security areas detected."
+        return t("intent.with_hints", file_count=file_count, added=added, removed=removed, hints=", ".join(hints[:6]))
+    return t("intent.without_hints", file_count=file_count, added=added, removed=removed)
