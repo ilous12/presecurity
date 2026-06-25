@@ -45,7 +45,7 @@ presecurity는 다섯 개의 커맨드를 지원합니다.
 - 어떤 영향이 있을 수 있는지
 - 어떤 순서로 수정하면 좋은지
 - 자동 수정 가능한 항목인지
-- 명백한 placeholder/test fixture 등 수정 불필요 항목은 결과에서 제외되는지
+- 명백한 placeholder/test fixture 등 수정 불필요 항목은 결과와 기록에서 제외되는지
 - 최근 변경 diff에서 보안상 민감한 영역이 있는지
 
 결과는 여기에 저장됩니다.
@@ -235,7 +235,7 @@ Commands:
 Command meanings:
 
 - `init`: create `.presecurity/` state files.
-- `scan`: scan the project, exclude common false-positive placeholders/fixtures, and write file, line, evidence, impact, and fix plan data to `.presecurity/scan-plan.json`.
+- `scan`: scan the project, omit common false-positive placeholders/fixtures from records, and write file, line, evidence, impact, and fix plan data to `.presecurity/scan-plan.json`.
 - `autofix`: apply automatic fixes, batch package installs at the end, then rescan.
 - `cleanup`: remove `.presecurity/`.
 - `doctor`: check runtime, git, state files, rules, and platform support.

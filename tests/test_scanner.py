@@ -1,10 +1,11 @@
 from pathlib import Path
+import json
 
 from presecurity.intent import parse_changed_files
 from presecurity.autofix import apply_autofix
 from presecurity.doctor import run_doctor
 from presecurity.scanner import scan
-from presecurity.state import ensure_state
+from presecurity.state import ensure_state, write_plan
 
 
 def test_scan_detects_yaml_and_eval(tmp_path: Path):
@@ -43,6 +44,22 @@ def test_scan_excludes_common_false_positive_secrets(tmp_path: Path):
 
     assert "falsePositivesExcluded" not in plan["summary"]
     assert "hardcoded-secret" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
+def test_false_positives_are_not_written_to_plan_or_history(tmp_path: Path):
+    (tmp_path / "template.ts").write_text("export const example = `SELECT * FROM users WHERE id = ${'demo'}`\n", encoding="utf-8")
+    (tmp_path / "content.tsx").write_text("return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />\n", encoding="utf-8")
+
+    plan = scan(tmp_path)
+    write_plan(tmp_path, plan)
+    state = json.loads((tmp_path / ".presecurity" / "scan-plan.json").read_text(encoding="utf-8"))
+    history = (tmp_path / ".presecurity" / "history.jsonl").read_text(encoding="utf-8")
+
+    assert state["findings"] == []
+    assert state["plan"] == []
+    assert "template.ts" not in history
+    assert "content.tsx" not in history
+    assert "falsePositive" not in json.dumps(state)
 
 
 def test_autofix_handles_react_finding_and_packages(tmp_path: Path):
