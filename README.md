@@ -185,6 +185,10 @@ codex plugin add presecurity@presecurity
 - Node.js / Express / NestJS
 - Python / Django / FastAPI / Flask
 - Java / Spring
+- Kotlin / Android
+- Flutter / Dart
+- iOS / Swift / Objective-C
+- C / C++
 - Go
 - Ruby on Rails
 - PHP / Laravel

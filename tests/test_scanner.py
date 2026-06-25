@@ -306,6 +306,58 @@ def test_scan_detects_popular_platform_rules(tmp_path: Path):
     assert "kubernetes-hostpath" in rule_ids
 
 
+def test_scan_detects_mobile_and_native_platform_rules(tmp_path: Path):
+    (tmp_path / "main.dart").write_text(
+        "client.badCertificateCallback = (cert, host, port) => true;\n"
+        "WebView(javascriptMode: JavascriptMode.unrestricted);\n"
+        "Process.run(command, args);\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "AndroidManifest.xml").write_text(
+        '<application android:usesCleartextTraffic="true">\n'
+        '<activity android:exported="true" />\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "MainActivity.kt").write_text(
+        "webView.settings.setJavaScriptEnabled(true)\n"
+        "webView.addJavascriptInterface(bridge, \"bridge\")\n"
+        "Runtime.getRuntime().exec(cmd)\n"
+        "db.rawQuery(\"SELECT * FROM users WHERE id = ${id}\", null)\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "Info.plist").write_text("<key>NSAllowsArbitraryLoads</key><true/>\n", encoding="utf-8")
+    (tmp_path / "ViewController.swift").write_text(
+        "configuration.userContentController.addScriptMessageHandler(self, name: \"bridge\")\n"
+        "webView.configuration.preferences.javaScriptEnabled = true\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "Legacy.m").write_text(
+        'NSString *sql = [NSString stringWithFormat:@"SELECT * FROM users WHERE id=%@", userId];\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "native.c").write_text("strcpy(dest, src);\nprintf(userInput);\n", encoding="utf-8")
+    (tmp_path / "native.cpp").write_text('sprintf(buffer, "%s", value);\n', encoding="utf-8")
+
+    plan = scan(tmp_path)
+
+    rule_ids = {finding["ruleId"] for finding in plan["findings"]}
+    assert "dart-bad-certificate-callback" in rule_ids
+    assert "flutter-webview-unrestricted-javascript" in rule_ids
+    assert "dart-process-execution" in rule_ids
+    assert "android-cleartext-traffic" in rule_ids
+    assert "android-exported-component" in rule_ids
+    assert "android-webview-javascript-enabled" in rule_ids
+    assert "android-webview-js-interface" in rule_ids
+    assert "kotlin-process-execution" in rule_ids
+    assert "kotlin-java-raw-sql" in rule_ids
+    assert "ios-ats-arbitrary-loads" in rule_ids
+    assert "ios-webview-script-message-handler" in rule_ids
+    assert "swift-webview-javascript-enabled" in rule_ids
+    assert "objc-format-sql" in rule_ids
+    assert "native-unsafe-buffer-function" in rule_ids
+    assert "native-format-string" in rule_ids
+
+
 def test_docker_root_rule_skips_non_root_user(tmp_path: Path):
     (tmp_path / "Dockerfile").write_text("FROM python:3.12\nUSER app\n", encoding="utf-8")
 
