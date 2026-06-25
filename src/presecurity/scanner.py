@@ -6,8 +6,10 @@ import hashlib
 import json
 from typing import Any
 
+from .false_positive import is_false_positive
 from .intent import analyze_intent
 from .i18n import t
+from .progress import progress
 from .rules import Rule, iter_rules
 from .state import utc_now
 
@@ -51,8 +53,13 @@ SPECIAL_FILES = {
 
 def scan(root: Path, diff_base: str = "HEAD") -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
+    ignored_as_false_positive = 0
     files_scanned = 0
-    for path in iter_files(root):
+    files = list(iter_files(root))
+    progress(t("progress.scan.collect"), 1, 4)
+    total_files = max(len(files), 1)
+    for file_index, path in enumerate(files, start=1):
+        progress(t("progress.scan.filter"), file_index, total_files)
         rel = path.relative_to(root).as_posix()
         language = detect_language(path)
         try:
@@ -68,13 +75,16 @@ def scan(root: Path, diff_base: str = "HEAD") -> dict[str, Any]:
                 continue
             compiled = rule.compile()
             for line_no, line in enumerate(text.splitlines(), start=1):
-                if "presecurity: ignore" in line:
-                    continue
                 if compiled.search(line):
+                    if is_false_positive(rule.id, rel, line, text):
+                        ignored_as_false_positive += 1
+                        continue
                     findings.append(format_finding(rule, rel, line_no, line))
 
+    progress(t("progress.scan.plan"), 3, 4)
     ordered = sorted(findings, key=lambda item: severity_rank(item["severity"]), reverse=True)
     plan = build_plan(ordered)
+    progress(t("progress.scan.done"), 4, 4)
     return {
         "schema": 1,
         "generatedAt": utc_now(),
@@ -88,6 +98,8 @@ def scan(root: Path, diff_base: str = "HEAD") -> dict[str, Any]:
             "medium": sum(1 for f in ordered if f["severity"] == "medium"),
             "low": sum(1 for f in ordered if f["severity"] == "low"),
             "autofixable": sum(1 for f in ordered if f.get("autofix")),
+            "falsePositivesExcluded": ignored_as_false_positive,
+            "issueLocations": [f"{f['file']}:{f['line']}" for f in ordered],
         },
         "findings": ordered,
         "plan": plan,
@@ -171,11 +183,12 @@ def print_plan(plan: dict[str, Any]) -> str:
         f"- {t('scan.files')}: {summary['filesScanned']}",
         f"- {t('scan.findings')}: {summary['findings']} ({t('scan.findings.counts', critical=summary['critical'], high=summary['high'], medium=summary['medium'], low=summary['low'])})",
         f"- {t('scan.autofixable')}: {summary['autofixable']}",
+        f"- {t('scan.false_positives')}: {summary.get('falsePositivesExcluded', 0)}",
         f"- {t('scan.intent')}: {plan.get('intent', {}).get('summary', 'not available')}",
     ]
     for finding in plan["findings"][:50]:
         lines.append(
-            f"- [{finding['severity']}] {finding['file']}:{finding['line']} {finding['ruleId']} - {finding['message']}"
+            f"- [{finding['severity']}] {finding['file']}:{finding['line']} {finding['ruleId']} - {finding['message']} | {t('scan.evidence')}: {finding['evidence']}"
         )
     if len(plan["findings"]) > 50:
         lines.append(f"- ... {t('scan.more', count=len(plan['findings']) - 50)}")

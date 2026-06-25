@@ -55,6 +55,7 @@ def main(argv: list[str] | None = None) -> int:
             print(t("autofix.title"))
             print(f"- {t('autofix.applied')}: {len(result['applied'])}")
             print(f"- {t('autofix.skipped')}: {len(result['skipped'])}")
+            print(f"- {t('autofix.packages')}: {len(result['packages'])}")
             print(f"- {t('autofix.remaining')}: {result['remaining']['findings']}")
         return 0
 

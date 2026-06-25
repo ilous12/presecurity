@@ -16,6 +16,11 @@ def test_scan_detects_yaml_and_eval(tmp_path: Path):
     rule_ids = {finding["ruleId"] for finding in plan["findings"]}
     assert "python-yaml-unsafe-load" in rule_ids
     assert "javascript-eval" in rule_ids
+    yaml_finding = next(finding for finding in plan["findings"] if finding["ruleId"] == "python-yaml-unsafe-load")
+    assert yaml_finding["file"] == "app.py"
+    assert yaml_finding["line"] == 2
+    assert "yaml.load" in yaml_finding["evidence"]
+    assert "app.py:2" in plan["summary"]["issueLocations"]
 
 
 def test_autofix_applies_safe_yaml_fix(tmp_path: Path):
@@ -27,6 +32,31 @@ def test_autofix_applies_safe_yaml_fix(tmp_path: Path):
 
     assert result["applied"]
     assert "yaml.safe_load" in target.read_text(encoding="utf-8")
+
+
+def test_scan_excludes_common_false_positive_secrets(tmp_path: Path):
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "example.py").write_text('api_key = "fake-placeholder-secret"\n', encoding="utf-8")
+    (tmp_path / "config.py").write_text('secret = "CHANGE-ME-PLACEHOLDER"\n', encoding="utf-8")
+
+    plan = scan(tmp_path)
+
+    assert plan["summary"]["falsePositivesExcluded"] == 2
+    assert "hardcoded-secret" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
+def test_autofix_handles_react_manual_style_finding_and_packages(tmp_path: Path):
+    target = tmp_path / "page.tsx"
+    target.write_text("export function Page({html}) { return <div dangerouslySetInnerHTML={{__html: html}} /> }\n", encoding="utf-8")
+
+    plan = scan(tmp_path)
+    result = apply_autofix(tmp_path, plan)
+    updated = target.read_text(encoding="utf-8")
+
+    assert result["applied"]
+    assert "DOMPurify.sanitize(html)" in updated
+    assert "from 'dompurify'" in updated
+    assert result["packages"] == [{"ecosystem": "npm", "ok": False, "reason": "package.json not found"}]
 
 
 def test_scan_detects_popular_platform_rules(tmp_path: Path):

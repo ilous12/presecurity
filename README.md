@@ -85,6 +85,7 @@ presecurity는 다섯 개의 커맨드를 지원합니다.
 - 어떤 영향이 있을 수 있는지
 - 어떤 순서로 수정하면 좋은지
 - 자동 수정 가능한 항목인지
+- 명백한 placeholder/test fixture 등 사전 제외된 오탐 후보가 몇 개인지
 - 최근 변경 diff에서 보안상 민감한 영역이 있는지
 
 결과는 여기에 저장됩니다.
@@ -93,9 +94,16 @@ presecurity는 다섯 개의 커맨드를 지원합니다.
 .presecurity/scan-plan.json
 ```
 
+실행 중에는 터미널에 진행바가 표시됩니다.
+
+```text
+[############------------] 2/4 오탐 후보 제외 및 규칙 검사
+```
+
 ### 3. `/presecurity autofix`
 
-마지막 scan 결과를 기준으로, 안전하게 자동 수정할 수 있는 항목만 순서대로 수정합니다.
+마지막 scan 결과를 기준으로, 수정 계획에 있는 항목을 순서대로 자동 수정합니다.
+수동 처리 요청은 만들지 않습니다. 명확한 치환이 가능한 항목은 코드로 고치고, 패키지 설치가 필요한 수정은 마지막에 모아서 한 번에 처리합니다.
 
 예:
 
@@ -104,8 +112,13 @@ presecurity는 다섯 개의 커맨드를 지원합니다.
 - `.innerHTML =` → `.textContent =`
 - `verify=False` → `verify=True`
 - `privileged: true` → `privileged: false`
+- `dangerouslySetInnerHTML` → `DOMPurify.sanitize(...)`
+- `document.write(...)` → text node 삽입
+- 하드코딩된 credential-like 값 → 빈 값으로 치환
+- `NEXT_PUBLIC_*SECRET*` → 서버 전용 변수명으로 치환
+- `.html_safe` 제거
 
-자동 수정 후 다시 스캔해서 남은 이슈를 확인합니다.
+자동 수정 후 다시 스캔해서 남은 이슈를 확인합니다. 진행 중에는 각 파일/라인별 적용 상태가 진행바로 표시됩니다.
 
 ### 4. `/presecurity cleanup`
 
@@ -253,8 +266,8 @@ Commands:
 Command meanings:
 
 - `init`: create `.presecurity/` state files.
-- `scan`: scan the project and write `.presecurity/scan-plan.json`.
-- `autofix`: apply safe deterministic fixes, then rescan.
+- `scan`: scan the project, exclude common false-positive placeholders/fixtures, and write file, line, evidence, impact, and fix plan data to `.presecurity/scan-plan.json`.
+- `autofix`: apply automatic fixes without manual handoff, batch package installs at the end, then rescan.
 - `cleanup`: remove `.presecurity/`.
 - `doctor`: check runtime, git, state files, rules, and platform support.
 

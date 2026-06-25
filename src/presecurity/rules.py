@@ -136,6 +136,7 @@ RULES: tuple[Rule, ...] = (
         message="Raw HTML rendering can introduce XSS.",
         impact="Attacker-controlled HTML can execute script in a user's browser.",
         recommendation="Render text by default or sanitize with a vetted HTML sanitizer.",
+        autofix="react_safe_html_sanitizer",
     ),
     Rule(
         id="dom-inner-html",
@@ -163,6 +164,7 @@ RULES: tuple[Rule, ...] = (
         message="document.write can create script injection and parser confusion.",
         impact="Untrusted content can execute in the page context.",
         recommendation="Use DOM APIs that insert text or sanitized nodes.",
+        autofix="document_write_to_text_node",
     ),
     Rule(
         id="hardcoded-secret",
@@ -176,6 +178,7 @@ RULES: tuple[Rule, ...] = (
         message="A credential-like value appears to be hardcoded.",
         impact="Committed secrets can be reused by attackers and are hard to rotate safely.",
         recommendation="Move secrets to environment or secret management and rotate exposed values.",
+        autofix="redact_hardcoded_secret",
     ),
     Rule(
         id="tls-verify-disabled",
@@ -199,7 +202,7 @@ RULES: tuple[Rule, ...] = (
         confidence="low",
         platforms=("backend", "data"),
         languages=("python", "javascript", "typescript", "java", "go", "ruby", "php"),
-        pattern=r"(?i)(select|insert|update|delete).*(\+|%s|\.format\(|\$\{)",  # presecurity: ignore
+        pattern=r"(?i)\b(select|insert|update|delete)\b.*(\+|%s|\.format\(|\$\{)",  # presecurity: ignore
         message="SQL appears to be built with string interpolation.",
         impact="Untrusted data can alter query structure.",
         recommendation="Use parameterized queries or ORM binding APIs.",
@@ -309,6 +312,7 @@ RULES: tuple[Rule, ...] = (
         message="NEXT_PUBLIC variables are exposed to the browser bundle.",
         impact="Secret-like values with NEXT_PUBLIC prefix are visible to users.",
         recommendation="Remove public prefix and access the secret only on the server.",
+        autofix="next_public_secret_to_server_secret",
     ),
     Rule(
         id="express-state-changing-route",
@@ -361,6 +365,7 @@ RULES: tuple[Rule, ...] = (
         message="Dynamic redirects can become open redirects.",
         impact="Attackers can redirect users to phishing or token-stealing destinations.",
         recommendation="Allow only relative paths or approved hosts.",
+        autofix="python_safe_redirect_guard",
     ),
     Rule(
         id="spring-spel-expression",
@@ -413,6 +418,7 @@ RULES: tuple[Rule, ...] = (
         message="html_safe disables Rails output escaping.",
         impact="Untrusted strings can execute script in browsers.",
         recommendation="Avoid html_safe on user-controlled content or sanitize explicitly.",
+        autofix="rails_remove_html_safe",
     ),
     Rule(
         id="php-laravel-raw-query",
