@@ -53,7 +53,6 @@ SPECIAL_FILES = {
 
 def scan(root: Path, diff_base: str = "HEAD") -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
-    ignored_as_false_positive = 0
     files_scanned = 0
     files = list(iter_files(root))
     progress(t("progress.scan.collect"), 1, 4)
@@ -77,7 +76,6 @@ def scan(root: Path, diff_base: str = "HEAD") -> dict[str, Any]:
             for line_no, line in enumerate(text.splitlines(), start=1):
                 if compiled.search(line):
                     if is_false_positive(rule.id, rel, line, text):
-                        ignored_as_false_positive += 1
                         continue
                     findings.append(format_finding(rule, rel, line_no, line))
 
@@ -97,8 +95,7 @@ def scan(root: Path, diff_base: str = "HEAD") -> dict[str, Any]:
             "high": sum(1 for f in ordered if f["severity"] == "high"),
             "medium": sum(1 for f in ordered if f["severity"] == "medium"),
             "low": sum(1 for f in ordered if f["severity"] == "low"),
-            "autofixable": sum(1 for f in ordered if f.get("autofix")),
-            "falsePositivesExcluded": ignored_as_false_positive,
+            "autofixable": len(plan),
             "issueLocations": [f"{f['file']}:{f['line']}" for f in ordered],
         },
         "findings": ordered,
@@ -148,7 +145,7 @@ def format_finding(rule: Rule, rel: str, line_no: int, line: str) -> dict[str, A
         "impact": rule.impact,
         "recommendation": rule.recommendation,
         "platforms": list(rule.platforms),
-        "autofix": rule.autofix,
+        "autofix": effective_autofix(rule),
     }
 
 
@@ -165,7 +162,7 @@ def build_plan(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "severity": finding["severity"],
                 "impact": finding["impact"],
                 "action": finding["recommendation"],
-                "autofix": finding.get("autofix"),
+                "autofix": finding.get("autofix") or "agent_intent_fix",
                 "status": "planned",
             }
         )
@@ -183,7 +180,6 @@ def print_plan(plan: dict[str, Any]) -> str:
         f"- {t('scan.files')}: {summary['filesScanned']}",
         f"- {t('scan.findings')}: {summary['findings']} ({t('scan.findings.counts', critical=summary['critical'], high=summary['high'], medium=summary['medium'], low=summary['low'])})",
         f"- {t('scan.autofixable')}: {summary['autofixable']}",
-        f"- {t('scan.false_positives')}: {summary.get('falsePositivesExcluded', 0)}",
         f"- {t('scan.intent')}: {plan.get('intent', {}).get('summary', 'not available')}",
     ]
     for finding in plan["findings"][:50]:
@@ -197,3 +193,14 @@ def print_plan(plan: dict[str, Any]) -> str:
 
 def plan_as_json(plan: dict[str, Any]) -> str:
     return json.dumps(plan, indent=2, sort_keys=True)
+
+
+def effective_autofix(rule: Rule) -> str:
+    if rule.autofix:
+        return rule.autofix
+    return {
+        "sql-string-concat": "parameterize_sql_placeholder",
+        "go-sql-format": "parameterize_sql_placeholder",
+        "django-raw-sql": "parameterize_sql_placeholder",
+        "php-laravel-raw-query": "parameterize_sql_placeholder",
+    }.get(rule.id, "agent_intent_fix")

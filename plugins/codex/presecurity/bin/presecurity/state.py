@@ -36,8 +36,7 @@ def ensure_state(root: Path) -> dict[str, Path]:
                     "createdAt": utc_now(),
                     "scanner": "presecurity",
                     "riskPolicy": {
-                        "autofix": "safe-only",
-                        "reviewRequiredFor": ["critical", "high"],
+                        "autofix": "automatic",
                     },
                 },
                 indent=2,
@@ -80,4 +79,3 @@ def write_plan(root: Path, plan: dict[str, Any]) -> Path:
 def read_plan(root: Path) -> dict[str, Any]:
     paths = ensure_state(root)
     return json.loads(paths["plan"].read_text(encoding="utf-8"))
-

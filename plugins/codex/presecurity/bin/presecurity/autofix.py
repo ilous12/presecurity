@@ -18,7 +18,7 @@ def apply_autofix(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
 
     for index, item in enumerate(items, start=1):
         progress(f"{t('progress.autofix.apply')} {item.get('file', 'unknown')}:{item.get('line', '?')}", index, max(len(items), 1))
-        fix = item.get("autofix") or "auto_mitigate_comment"
+        fix = item.get("autofix") or "agent_intent_fix"
         path = root / item["file"]
         if not path.exists():
             skipped.append({"findingId": item.get("findingId"), "reason": "file-missing"})
@@ -89,13 +89,15 @@ def apply_fix_text(text: str, fix: str, item: dict[str, Any] | None = None) -> s
         return text.replace(".html_safe", "")
     if fix == "python_safe_redirect_guard":
         return add_python_redirect_guard(text)
-    if fix == "auto_mitigate_comment":
-        return add_mitigation_marker(text, item)
+    if fix == "parameterize_sql_placeholder":
+        return parameterize_sql_line(text, item)
+    if fix == "agent_intent_fix":
+        return add_agent_fix_marker(text, item)
     return text
 
 
 def sanitize_react_html(text: str) -> str:
-    pattern = re.compile(r"dangerouslySetInnerHTML=\{\{\s*__html:\s*([^}]+?)\s*\}\}")
+    pattern = re.compile(r"dangerouslySetInnerHTML\s*=\s*\{\{\s*__html\s*:\s*([^}]+?)\s*\}\}")
 
     def replace(match: re.Match[str]) -> str:
         expression = match.group(1).strip()
@@ -104,6 +106,32 @@ def sanitize_react_html(text: str) -> str:
         return f"dangerouslySetInnerHTML={{{{__html: DOMPurify.sanitize({expression})}}}}"
 
     return pattern.sub(replace, text)
+
+
+def parameterize_sql_line(text: str, item: dict[str, Any] | None) -> str:
+    def transform(line: str) -> str:
+        params: list[str] = []
+
+        def replace_template(match: re.Match[str]) -> str:
+            params.append(match.group(1).strip())
+            return "?"
+
+        updated = re.sub(r"\$\{([^}]+)\}", replace_template, line)
+        updated = updated.replace("%s", "?")
+        updated = re.sub(r"\+\s*([A-Za-z_][A-Za-z0-9_.$]*)", lambda m: collect_concat_param(m, params), updated)
+        updated = re.sub(r"([A-Za-z_][A-Za-z0-9_.$]*)\s*\+", lambda m: collect_concat_param(m, params), updated)
+        if params and "presecurity params:" not in updated:
+            updated = f"{updated} {line_comment(item)} presecurity params: {', '.join(params)}"
+        return updated
+
+    return replace_target_line(text, item, transform)
+
+
+def collect_concat_param(match: re.Match[str], params: list[str]) -> str:
+    value = match.group(1).strip()
+    if value.lower() not in {"select", "insert", "update", "delete"}:
+        params.append(value)
+    return "?"
 
 
 def add_python_redirect_guard(text: str) -> str:
@@ -122,15 +150,29 @@ def add_python_redirect_guard(text: str) -> str:
     )
 
 
-def add_mitigation_marker(text: str, item: dict[str, Any] | None) -> str:
+def add_agent_fix_marker(text: str, item: dict[str, Any] | None) -> str:
+    def transform(line: str) -> str:
+        if "presecurity agent-fix" in line:
+            return line
+        return f"{line} {line_comment(item)} presecurity agent-fix: apply intent-preserving secure rewrite"
+
+    return replace_target_line(text, item, transform)
+
+
+def replace_target_line(text: str, item: dict[str, Any] | None, transform) -> str:
     if not item:
         return text
     line_no = int(item.get("line") or 1)
-    rule_id = item.get("ruleId", "unknown-rule")
-    marker = f"# presecurity autofix: automated mitigation marker for {rule_id}"
     lines = text.splitlines()
-    index = max(0, min(line_no - 1, len(lines)))
-    if any(marker in line for line in lines[max(0, index - 2) : index + 2]):
+    if not lines:
         return text
-    lines.insert(index, marker)
+    index = max(0, min(line_no - 1, len(lines) - 1))
+    lines[index] = transform(lines[index])
     return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
+
+
+def line_comment(item: dict[str, Any] | None) -> str:
+    file_name = str((item or {}).get("file", ""))
+    if file_name.endswith((".py", ".rb", ".sh", ".yaml", ".yml", ".tf")):
+        return "#"
+    return "//"

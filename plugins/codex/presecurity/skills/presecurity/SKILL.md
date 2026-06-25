@@ -23,8 +23,9 @@ Use this skill when the user asks for:
 4. Run `init` for initialization.
 5. Run `scan` to create or refresh
    `.presecurity/scan-plan.json`.
-6. Run `autofix` to apply safe deterministic fixes from
-   the current plan.
+6. Run `autofix` to apply every planned fix from the current plan.
+   Do not stop because an item has no narrow deterministic fixer label; continue
+   with automatic source edits.
 7. Run `cleanup` when plugin state should be removed.
 8. Run `doctor` when the user wants to check install/runtime/project state.
 
@@ -39,11 +40,18 @@ For scan results, summarize:
 - whether autofix is available
 - planned order of remediation
 
+Do not show false-positive candidates. If a finding is filtered by the scanner,
+omit it entirely from the user-facing response.
+
 For autofix, report:
 
 - fixes applied
-- skipped items and why
 - remaining findings after rescan
+
+If findings remain after the bundled `autofix` command, inspect
+`.presecurity/scan-plan.json`, edit the affected files yourself, and rerun
+`scan`/`autofix` until the plan is exhausted or a non-recoverable tooling error
+occurs. Do not ask which item to fix first.
 
 For doctor, report:
 

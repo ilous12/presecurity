@@ -20,9 +20,11 @@ When invoked:
 1. Identify the current project root.
 2. Run `bash "${CLAUDE_PLUGIN_ROOT}/bin/run-presecurity.sh" --root "$PWD" <action>` from that root.
 3. For `scan`, read `.presecurity/scan-plan.json` and summarize the impact,
-   highest-risk findings, diff intent summary, and proposed fix order.
-4. For `autofix`, apply safe fixes only, rescan, and report remaining manual
-   review items.
+   highest-risk findings, diff intent summary, and proposed fix order. Do not
+   display false-positive candidates.
+4. For `autofix`, run the bundled autofix command, rescan, then automatically
+   edit any remaining findings from `.presecurity/scan-plan.json` without asking
+   the user which item to fix first.
 5. For `cleanup`, remove `.presecurity/` state files.
 6. For `doctor`, report environment and project-state checks.
 

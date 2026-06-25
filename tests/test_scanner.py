@@ -41,11 +41,11 @@ def test_scan_excludes_common_false_positive_secrets(tmp_path: Path):
 
     plan = scan(tmp_path)
 
-    assert plan["summary"]["falsePositivesExcluded"] == 2
+    assert "falsePositivesExcluded" not in plan["summary"]
     assert "hardcoded-secret" not in {finding["ruleId"] for finding in plan["findings"]}
 
 
-def test_autofix_handles_react_manual_style_finding_and_packages(tmp_path: Path):
+def test_autofix_handles_react_finding_and_packages(tmp_path: Path):
     target = tmp_path / "page.tsx"
     target.write_text("export function Page({html}) { return <div dangerouslySetInnerHTML={{__html: html}} /> }\n", encoding="utf-8")
 
@@ -57,6 +57,47 @@ def test_autofix_handles_react_manual_style_finding_and_packages(tmp_path: Path)
     assert "DOMPurify.sanitize(html)" in updated
     assert "from 'dompurify'" in updated
     assert result["packages"] == [{"ecosystem": "npm", "ok": False, "reason": "package.json not found"}]
+
+
+def test_all_findings_are_planned_for_autofix(tmp_path: Path):
+    (tmp_path / "app.js").write_text("eval(input)\n", encoding="utf-8")
+
+    plan = scan(tmp_path)
+
+    assert plan["summary"]["autofixable"] == plan["summary"]["findings"]
+    assert plan["plan"][0]["autofix"] == "agent_intent_fix"
+
+
+def test_autofix_parameterizes_obvious_sql_template(tmp_path: Path):
+    target = tmp_path / "repo.ts"
+    target.write_text("const sql = `SELECT * FROM users WHERE id = ${userId}`\n", encoding="utf-8")
+
+    plan = scan(tmp_path)
+    result = apply_autofix(tmp_path, plan)
+    updated = target.read_text(encoding="utf-8")
+
+    assert result["applied"]
+    assert "${userId}" not in updated
+    assert "?" in updated
+    assert "presecurity params: userId" in updated
+
+
+def test_scan_omits_sanitized_react_html(tmp_path: Path):
+    target = tmp_path / "content.tsx"
+    target.write_text("return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />\n", encoding="utf-8")
+
+    plan = scan(tmp_path)
+
+    assert "react-dangerously-set-html" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
+def test_scan_omits_template_and_css_selector_sql_false_positives(tmp_path: Path):
+    (tmp_path / "template.ts").write_text("export const example = `SELECT * FROM users WHERE id = ${'demo'}`\n", encoding="utf-8")
+    (tmp_path / "useImageExport.ts").write_text("export const css = `user-select: none; color: ${color};`\n", encoding="utf-8")
+
+    plan = scan(tmp_path)
+
+    assert "sql-string-concat" not in {finding["ruleId"] for finding in plan["findings"]}
 
 
 def test_scan_detects_popular_platform_rules(tmp_path: Path):

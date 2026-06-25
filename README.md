@@ -45,7 +45,7 @@ presecurity는 다섯 개의 커맨드를 지원합니다.
 - 어떤 영향이 있을 수 있는지
 - 어떤 순서로 수정하면 좋은지
 - 자동 수정 가능한 항목인지
-- 명백한 placeholder/test fixture 등 사전 제외된 오탐 후보가 몇 개인지
+- 명백한 placeholder/test fixture 등 수정 불필요 항목은 결과에서 제외되는지
 - 최근 변경 diff에서 보안상 민감한 영역이 있는지
 
 결과는 여기에 저장됩니다.
@@ -57,13 +57,13 @@ presecurity는 다섯 개의 커맨드를 지원합니다.
 실행 중에는 터미널에 진행바가 표시됩니다.
 
 ```text
-[############------------] 2/4 오탐 후보 제외 및 규칙 검사
+[############------------] 2/4 규칙 검사
 ```
 
 ### 3. `/presecurity autofix`
 
 마지막 scan 결과를 기준으로, 수정 계획에 있는 항목을 순서대로 자동 수정합니다.
-수동 처리 요청은 만들지 않습니다. 명확한 치환이 가능한 항목은 코드로 고치고, 패키지 설치가 필요한 수정은 마지막에 모아서 한 번에 처리합니다.
+모든 항목은 자동 처리 흐름으로 진행합니다. 명확한 치환이 가능한 항목은 코드로 고치고, 패키지 설치가 필요한 수정은 마지막에 모아서 한 번에 처리합니다.
 
 예:
 
@@ -236,7 +236,7 @@ Command meanings:
 
 - `init`: create `.presecurity/` state files.
 - `scan`: scan the project, exclude common false-positive placeholders/fixtures, and write file, line, evidence, impact, and fix plan data to `.presecurity/scan-plan.json`.
-- `autofix`: apply automatic fixes without manual handoff, batch package installs at the end, then rescan.
+- `autofix`: apply automatic fixes, batch package installs at the end, then rescan.
 - `cleanup`: remove `.presecurity/`.
 - `doctor`: check runtime, git, state files, rules, and platform support.
 
