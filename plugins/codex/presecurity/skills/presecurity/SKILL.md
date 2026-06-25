@@ -25,7 +25,8 @@ Use this skill when the user asks for:
 4. Run `init` for initialization.
 5. Run `scan` to create or refresh
    `.presecurity/scan-plan.json`.
-6. Run `autofix` to apply every planned fix from the current plan.
+6. Run `autofix` to rescan, discard stale or false-positive plan items, and
+   apply every remaining planned fix.
    Do not stop because an item has no narrow deterministic fixer label; continue
    with automatic source edits.
 7. Run `cleanup` when plugin state should be removed.

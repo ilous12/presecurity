@@ -138,6 +138,8 @@ def is_env_backed_url(line: str, full_text: str) -> bool:
     argument = ssrf_first_argument(line)
     if not argument:
         return False
+    if is_relative_url_argument(argument, full_text):
+        return True
     if any(token in argument.lower() for token in USER_INPUT_TOKENS):
         return False
     if any(token in argument.lower() for token in ENV_URL_TOKENS):
@@ -155,3 +157,36 @@ def is_env_backed_url(line: str, full_text: str) -> bool:
 def ssrf_first_argument(line: str) -> str:
     match = re.search(r"\b(?:fetch|axios|requests|http\.(?:Get|Post))\s*\(\s*([^,\)\n]+)", line)
     return match.group(1).strip() if match else ""
+
+
+def is_relative_url_argument(argument: str, full_text: str) -> bool:
+    stripped = argument.strip()
+    if re.match(r"^[`'\"]/(?!/)", stripped):
+        return True
+    if not re.match(r"^[A-Za-z_$][\w$]*$", stripped):
+        return False
+    assignment_pattern = rf"(?is)\b(?:const|let|var)\s+{re.escape(stripped)}\s*=\s*[`'\"]/(?!/)"
+    return bool(re.search(assignment_pattern, full_text))
+
+
+def is_plan_item_false_positive(root: Path, item: dict) -> bool:
+    rel = str(item.get("file") or "")
+    rule_id = str(item.get("ruleId") or "")
+    if not rel or not rule_id:
+        return False
+    path = root / rel
+    if not path.exists():
+        return False
+    try:
+        full_text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return False
+    lines = full_text.splitlines()
+    line_no = int(item.get("line") or 0)
+    if line_no < 1 or line_no > len(lines):
+        return True
+    line = lines[line_no - 1]
+    evidence = str(item.get("evidence") or "").strip()
+    if evidence and evidence not in line.strip():
+        return True
+    return is_false_positive(rule_id, rel, line, full_text)

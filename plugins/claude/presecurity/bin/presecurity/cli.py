@@ -8,7 +8,7 @@ from .autofix import apply_autofix
 from .doctor import print_doctor, run_doctor
 from .i18n import t
 from .scanner import plan_as_json, print_plan, scan
-from .state import ensure_state, read_plan, state_paths, write_plan
+from .state import ensure_state, state_paths, write_plan
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,10 +42,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "autofix":
         ensure_state(root)
-        plan = read_plan(root)
-        if not plan.get("plan"):
-            plan = scan(root)
-            write_plan(root, plan)
+        plan = scan(root)
+        write_plan(root, plan)
         result = apply_autofix(root, plan)
         if args.json:
             import json

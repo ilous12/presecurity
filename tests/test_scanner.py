@@ -3,6 +3,7 @@ import json
 
 from presecurity.intent import parse_changed_files
 from presecurity.autofix import apply_autofix
+from presecurity.cli import main
 from presecurity.doctor import run_doctor
 from presecurity.scanner import scan
 from presecurity.state import ensure_state, write_plan
@@ -155,6 +156,124 @@ def test_scan_omits_env_backed_fetch_ssrf_false_positive(tmp_path: Path):
     plan = scan(tmp_path)
 
     assert "ssrf-unvalidated-url" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
+def test_scan_omits_relative_fetch_ssrf_false_positive(tmp_path: Path):
+    target = tmp_path / "client.ts"
+    target.write_text(
+        "await fetch(`/api/users/${id}`)\n"
+        "const path = `/internal/jobs/${jobId}`\n"
+        "await fetch(path)\n",
+        encoding="utf-8",
+    )
+
+    plan = scan(tmp_path)
+
+    assert "ssrf-unvalidated-url" not in {finding["ruleId"] for finding in plan["findings"]}
+
+
+def test_autofix_drops_stale_false_positive_plan_items(tmp_path: Path):
+    target = tmp_path / "messageTextParser.ts"
+    target.write_text("MESSAGE_TEXT_PATTERN.exec(messageContent)\n", encoding="utf-8")
+    stale_plan = {
+        "findings": [
+            {
+                "id": "stale-fp",
+                "ruleId": "node-child-process-exec",
+                "file": "messageTextParser.ts",
+                "line": 1,
+                "evidence": "MESSAGE_TEXT_PATTERN.exec(messageContent)",
+                "autofix": "agent_intent_fix",
+            }
+        ],
+        "plan": [
+            {
+                "findingId": "stale-fp",
+                "ruleId": "node-child-process-exec",
+                "file": "messageTextParser.ts",
+                "line": 1,
+                "autofix": "agent_intent_fix",
+            }
+        ],
+    }
+
+    result = apply_autofix(tmp_path, stale_plan)
+
+    assert result["applied"] == []
+    assert result["skipped"] == []
+    assert target.read_text(encoding="utf-8") == "MESSAGE_TEXT_PATTERN.exec(messageContent)\n"
+    state = json.loads((tmp_path / ".presecurity" / "scan-plan.json").read_text(encoding="utf-8"))
+    assert state["findings"] == []
+    assert state["plan"] == []
+
+
+def test_autofix_drops_stale_line_mismatch_items(tmp_path: Path):
+    target = tmp_path / "app.js"
+    target.write_text("const value = 1\n", encoding="utf-8")
+    stale_plan = {
+        "findings": [
+            {
+                "id": "stale-eval",
+                "ruleId": "javascript-eval",
+                "file": "app.js",
+                "line": 1,
+                "evidence": "eval(input)",
+                "autofix": "agent_intent_fix",
+            }
+        ],
+        "plan": [
+            {
+                "findingId": "stale-eval",
+                "ruleId": "javascript-eval",
+                "file": "app.js",
+                "line": 1,
+                "autofix": "agent_intent_fix",
+            }
+        ],
+    }
+
+    result = apply_autofix(tmp_path, stale_plan)
+
+    assert result["applied"] == []
+    assert result["skipped"] == []
+    assert "presecurity agent-fix" not in target.read_text(encoding="utf-8")
+
+
+def test_cli_autofix_rescans_before_applying_stale_plan(tmp_path: Path):
+    target = tmp_path / "messageTextParser.ts"
+    target.write_text("MESSAGE_TEXT_PATTERN.exec(messageContent)\n", encoding="utf-8")
+    ensure_state(tmp_path)
+    stale_plan = {
+        "schema": 1,
+        "findings": [
+            {
+                "id": "stale-fp",
+                "ruleId": "node-child-process-exec",
+                "file": "messageTextParser.ts",
+                "line": 1,
+                "evidence": "MESSAGE_TEXT_PATTERN.exec(messageContent)",
+                "autofix": "agent_intent_fix",
+            }
+        ],
+        "plan": [
+            {
+                "findingId": "stale-fp",
+                "ruleId": "node-child-process-exec",
+                "file": "messageTextParser.ts",
+                "line": 1,
+                "autofix": "agent_intent_fix",
+            }
+        ],
+    }
+    (tmp_path / ".presecurity" / "scan-plan.json").write_text(json.dumps(stale_plan), encoding="utf-8")
+
+    exit_code = main(["--root", str(tmp_path), "autofix"])
+
+    assert exit_code == 0
+    assert target.read_text(encoding="utf-8") == "MESSAGE_TEXT_PATTERN.exec(messageContent)\n"
+    refreshed = json.loads((tmp_path / ".presecurity" / "scan-plan.json").read_text(encoding="utf-8"))
+    assert refreshed["findings"] == []
+    assert refreshed["plan"] == []
 
 
 def test_scan_omits_template_and_css_selector_sql_false_positives(tmp_path: Path):

@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 from typing import Any
 
+from .false_positive import is_plan_item_false_positive
 from .i18n import t
 from .packages import collect_package_requirements, install_required_packages
 from .progress import progress
@@ -14,7 +15,7 @@ from .state import append_history, write_plan
 def apply_autofix(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
     applied: list[dict[str, Any]] = []
     skipped: list[dict[str, Any]] = []
-    items = plan.get("plan", [])
+    items = actionable_plan_items(root, plan)
 
     for index, item in enumerate(items, start=1):
         progress(f"{t('progress.autofix.apply')} {item.get('file', 'unknown')}:{item.get('line', '?')}", index, max(len(items), 1))
@@ -48,6 +49,18 @@ def apply_autofix(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
         },
     )
     return {"applied": applied, "skipped": skipped, "packages": package_results, "remaining": after["summary"]}
+
+
+def actionable_plan_items(root: Path, plan: dict[str, Any]) -> list[dict[str, Any]]:
+    findings = {finding.get("id"): finding for finding in plan.get("findings", [])}
+    items: list[dict[str, Any]] = []
+    for item in plan.get("plan", []):
+        finding = findings.get(item.get("findingId"))
+        candidate = {**(finding or {}), **item}
+        if is_plan_item_false_positive(root, candidate):
+            continue
+        items.append(item)
+    return items
 
 
 def apply_fix_text(text: str, fix: str, item: dict[str, Any] | None = None) -> str:

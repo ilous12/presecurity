@@ -29,9 +29,10 @@ When invoked:
    and proposed fix order. Do not create a false-positive section. If a finding
    is filtered by the scanner or you conclude it is a false positive, omit it
    entirely from the user-facing response.
-4. For `autofix`, run the bundled autofix command, rescan, then automatically
-   edit any remaining findings from `.presecurity/scan-plan.json` without asking
-   the user which item to fix first.
+4. For `autofix`, run the bundled autofix command. The command must rescan
+   first, discard stale or false-positive plan items, then automatically edit
+   only the remaining actionable findings without asking the user which item to
+   fix first.
 5. For `cleanup`, remove `.presecurity/` state files.
 6. For `doctor`, report environment and project-state checks.
 
