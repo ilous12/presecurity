@@ -1,53 +1,114 @@
 # presecurity development plan
 
-## Product goal
+## Target
 
-Build a Claude Code and Codex Desktop marketplace plugin that detects security
-issues while people use coding agents, creates a remediation plan, and safely
-autofixes low-risk findings.
+Build an internal GitHub-installable security plugin for Claude Code and Codex
+Desktop. The plugin should scan code produced or modified during agent workflows,
+list security findings, estimate impact, produce a fix plan, and apply only safe
+deterministic fixes.
 
-## Reference model
+The active delivery scope is Phase 1, Phase 2, and Phase 3.
 
-presecurity follows the same broad pattern as Anthropic's `security-guidance`:
+## Phase 1. Installable plugin foundation
 
-1. Fast local pattern checks for known-dangerous APIs.
-2. Diff-aware review before the agent declares work complete.
-3. Commit/push review for broader context.
-4. Project-local policy and history.
+Goal: employees can install presecurity from GitHub and run the same command
+contract in Claude Code and Codex.
 
-The first implementation keeps the scanner deterministic and local. LLM review
-and commit hooks are planned as the next layer after the core command loop is
-stable.
+Deliverables:
 
-## Command contract
+- GitHub-hosted Claude marketplace at `.claude-plugin/marketplace.json`.
+- GitHub-hosted Codex marketplace at `.agents/plugins/marketplace.json`.
+- Bundled scanner inside both plugin packages.
+- `/presecurity init`, `/presecurity scan`, `/presecurity autofix`, and
+  `/presecurity cleanup` instructions.
+- `docs/install-from-github.md`.
+- Plugin validation in local verification.
 
-### `/presecurity init`
+Acceptance:
 
-Creates `.presecurity/` and the initial management files.
+- Claude plugin validates.
+- Codex plugin validates.
+- Bundled runner works without installing the scanner as a separate package.
+- README has GitHub installation instructions.
 
-### `/presecurity scan`
+## Phase 2. Popular platform rule engine
 
-Scans the repository, lists all findings, records impact, and writes a sequential
-fix plan to `.presecurity/scan-plan.json`.
+Goal: cover high-signal risks across popular FE, BE, and infra stacks.
 
-### `/presecurity autofix`
+Initial supported platform families:
 
-Reads the current fix plan, applies safe deterministic fixes in order, rescans,
-and records the result in `.presecurity/history.jsonl`.
+- FE: React, Next.js, Vue, Svelte, browser DOM.
+- BE: Node.js, Express, NestJS, Python, Django, FastAPI, Flask, Java, Spring,
+  Go, Ruby on Rails, PHP/Laravel.
+- Infra: Docker, Kubernetes, Terraform, GitHub Actions.
 
-### Plugin deletion
+Rule categories:
 
-The scanner provides `presecurity cleanup` to delete `.presecurity/`. If a host
-marketplace exposes uninstall hooks, the Claude/Codex adapters should call that
-command on uninstall. Until then, plugin docs must expose `/presecurity cleanup`
-or the direct CLI cleanup command as the fallback.
+- OWASP A01 Broken Access Control.
+- OWASP A02 Cryptographic Failures.
+- OWASP A03 Injection.
+- OWASP A05 Security Misconfiguration.
+- OWASP A07 Identification and Authentication Failures.
+- OWASP A08 Software and Data Integrity Failures.
+- OWASP A10 Server-Side Request Forgery.
 
-## Milestones
+Acceptance:
 
-1. Repository and shared scanner MVP.
-2. Claude plugin package with command and hook skeleton.
-3. Codex plugin package with skill wrapper.
-4. OWASP Top 10 mapping and 20 platform coverage metadata.
-5. LLM diff review and agentic context review.
-6. Marketplace polish: icon, screenshots, privacy policy, validation CI.
+- Rules map to OWASP category, severity, confidence, platform, impact, and
+  recommendation.
+- Scan output includes an ordered remediation plan.
+- High-risk examples are covered by tests.
 
+## Phase 3. Diff intent analysis
+
+Goal: scan should explain what changed and what security-sensitive areas appear
+to be affected, even before deep LLM review is added.
+
+Deliverables:
+
+- Git diff parser.
+- Changed file summary.
+- Added/removed line count.
+- Security hints for auth, API routes, database access, outbound HTTP, file
+  system access, shell execution, rendered HTML, CI/CD, and infrastructure.
+- `intent` section in `.presecurity/scan-plan.json`.
+- `--base <git-ref>` option for scan.
+
+Acceptance:
+
+- `scan` includes an intent summary when git diff is available.
+- `scan --base <ref>` changes the diff base.
+- Tests cover diff parsing and hint classification.
+
+## Test plan
+
+### Unit tests
+
+- Rule matching for Python, JavaScript/TypeScript, Java, Go, Ruby, PHP, YAML,
+  HCL, and Dockerfile examples.
+- Intent parser for git unified diffs.
+- Autofix transforms.
+- State file creation.
+
+### CLI tests
+
+- `init` creates `.presecurity/config.json`, `history.jsonl`, and
+  `scan-plan.json`.
+- `scan` writes findings and intent to `scan-plan.json`.
+- `scan --base HEAD` accepts a git base argument.
+- `autofix` applies safe fixes and rescans.
+- `cleanup` removes `.presecurity`.
+
+### Plugin tests
+
+- Claude bundled runner executes `init` and `scan`.
+- Codex bundled runner executes `init` and `scan`.
+- Claude plugin manifest validates.
+- Codex plugin manifest validates.
+
+### Regression tests
+
+- Every new safe autofix gets a before/after test.
+- Every high-risk rule gets at least one vulnerable fixture test.
+- Any intentional vulnerable test fixture must use `presecurity: ignore` when
+  it appears in scanner source or test source.

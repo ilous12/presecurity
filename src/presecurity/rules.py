@@ -19,9 +19,15 @@ class Rule:
     impact: str
     recommendation: str
     autofix: str | None = None
+    requires_absent: str | None = None
 
     def compile(self) -> re.Pattern[str]:
         return re.compile(self.pattern)
+
+    def absent_compile(self) -> re.Pattern[str] | None:
+        if not self.requires_absent:
+            return None
+        return re.compile(self.requires_absent)
 
 
 RULES: tuple[Rule, ...] = (
@@ -33,7 +39,7 @@ RULES: tuple[Rule, ...] = (
         confidence="high",
         platforms=("backend", "cli", "data"),
         languages=("python",),
-        pattern=r"\byaml\.load\s*\(",
+        pattern=r"\byaml\.load\s*\(",  # presecurity: ignore
         message="yaml.load can deserialize attacker-controlled objects.",
         impact="Arbitrary object construction can lead to code execution or data compromise.",
         recommendation="Use yaml.safe_load unless a trusted Loader is explicitly required.",
@@ -47,7 +53,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("backend", "cli", "devops"),
         languages=("python",),
-        pattern=r"\bsubprocess\.(run|call|check_call|check_output|Popen)\s*\([^#\n]*shell\s*=\s*True",
+        pattern=r"\bsubprocess\.(run|call|check_call|check_output|Popen)\s*\([^#\n]*shell\s*=\s*True",  # presecurity: ignore
         message="subprocess with shell=True can turn untrusted input into command injection.",
         impact="A crafted argument can execute arbitrary shell commands.",
         recommendation="Pass arguments as a list and keep shell=False.",
@@ -60,7 +66,7 @@ RULES: tuple[Rule, ...] = (
         confidence="high",
         platforms=("backend", "data", "ml"),
         languages=("python",),
-        pattern=r"\b(pickle|cPickle|dill|joblib)\.(load|loads)\s*\(",
+        pattern=r"\b(pickle|cPickle|dill|joblib)\.(load|loads)\s*\(",  # presecurity: ignore
         message="pickle-like deserialization executes code embedded in untrusted payloads.",
         impact="Loading attacker-controlled serialized data can execute arbitrary code.",
         recommendation="Use a safe data format such as JSON, or strictly verify trust boundaries.",
@@ -73,7 +79,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("backend", "web"),
         languages=("python",),
-        pattern=r"\bdebug\s*=\s*True\b",
+        pattern=r"\bdebug\s*=\s*True\b",  # presecurity: ignore
         message="Debug mode can expose stack traces, secrets, and interactive consoles.",
         impact="Production debug mode can leak sensitive data or enable remote execution.",
         recommendation="Disable debug mode outside local development.",
@@ -87,7 +93,7 @@ RULES: tuple[Rule, ...] = (
         confidence="high",
         platforms=("frontend", "backend", "serverless"),
         languages=("javascript", "typescript"),
-        pattern=r"\beval\s*\(",
+        pattern=r"\beval\s*\(",  # presecurity: ignore
         message="eval executes strings as code.",
         impact="Untrusted data flowing into eval can become arbitrary code execution.",
         recommendation="Replace eval with a parser, lookup table, or typed command dispatch.",
@@ -100,7 +106,7 @@ RULES: tuple[Rule, ...] = (
         confidence="high",
         platforms=("frontend", "backend", "serverless"),
         languages=("javascript", "typescript"),
-        pattern=r"\bnew\s+Function\s*\(",
+        pattern=r"\bnew\s+Function\s*\(",  # presecurity: ignore
         message="new Function executes strings as code.",
         impact="Untrusted data can escape application logic and execute arbitrary code.",
         recommendation="Use explicit functions or a constrained expression evaluator.",
@@ -113,7 +119,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("backend", "cli", "devops"),
         languages=("javascript", "typescript"),
-        pattern=r"\b(child_process\.)?exec\s*\(",
+        pattern=r"\b(child_process\.)?exec\s*\(",  # presecurity: ignore
         message="exec invokes a shell and is easy to misuse with untrusted input.",
         impact="A crafted string can execute arbitrary shell commands.",
         recommendation="Use execFile or spawn with argument arrays and validation.",
@@ -126,7 +132,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("frontend", "react", "nextjs"),
         languages=("javascript", "typescript", "tsx", "jsx"),
-        pattern=r"dangerouslySetInnerHTML",
+        pattern=r"dangerouslySetInnerHTML",  # presecurity: ignore
         message="Raw HTML rendering can introduce XSS.",
         impact="Attacker-controlled HTML can execute script in a user's browser.",
         recommendation="Render text by default or sanitize with a vetted HTML sanitizer.",
@@ -139,7 +145,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("frontend", "browser-extension"),
         languages=("javascript", "typescript"),
-        pattern=r"\.innerHTML\s*=",
+        pattern=r"\.innerHTML\s*=",  # presecurity: ignore
         message="innerHTML assignment can introduce DOM XSS.",
         impact="Untrusted HTML can run script in the browser.",
         recommendation="Use textContent or sanitize before HTML insertion.",
@@ -153,7 +159,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("frontend",),
         languages=("javascript", "typescript"),
-        pattern=r"\bdocument\.write\s*\(",
+        pattern=r"\bdocument\.write\s*\(",  # presecurity: ignore
         message="document.write can create script injection and parser confusion.",
         impact="Untrusted content can execute in the page context.",
         recommendation="Use DOM APIs that insert text or sanitized nodes.",
@@ -166,7 +172,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("frontend", "backend", "infra", "mobile"),
         languages=("any",),
-        pattern=r"(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"\n]{12,}['\"]",
+        pattern=r"(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"\n]{12,}['\"]",  # presecurity: ignore
         message="A credential-like value appears to be hardcoded.",
         impact="Committed secrets can be reused by attackers and are hard to rotate safely.",
         recommendation="Move secrets to environment or secret management and rotate exposed values.",
@@ -179,7 +185,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("backend", "mobile", "infra"),
         languages=("python", "javascript", "typescript", "go", "java"),
-        pattern=r"(?i)(verify\s*=\s*False|rejectUnauthorized\s*:\s*false|InsecureSkipVerify\s*:\s*true)",
+        pattern=r"(?i)(verify\s*=\s*False|rejectUnauthorized\s*:\s*false|InsecureSkipVerify\s*:\s*true)",  # presecurity: ignore
         message="TLS certificate verification is disabled.",
         impact="Network attackers can intercept or alter supposedly secure traffic.",
         recommendation="Keep certificate verification enabled and fix trust store issues explicitly.",
@@ -206,7 +212,7 @@ RULES: tuple[Rule, ...] = (
         confidence="low",
         platforms=("backend", "serverless", "worker"),
         languages=("python", "javascript", "typescript", "go", "java"),
-        pattern=r"\b(requests|axios|fetch|http\.Get|http\.Post)\s*\([^'\"\n]",
+        pattern=r"\b(requests|axios|fetch|http\.Get|http\.Post)\s*\([^'\"\n]",  # presecurity: ignore
         message="Outbound HTTP call appears to use a dynamic URL.",
         impact="Unvalidated URLs can reach internal services or cloud metadata endpoints.",
         recommendation="Validate scheme, host, resolved IP, redirects, and metadata ranges.",
@@ -219,7 +225,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("backend", "api", "serverless"),
         languages=("any",),
-        pattern=r"(?i)(Access-Control-Allow-Origin|allow_origins|origin)\s*[:=]\s*['\"]\*['\"]",
+        pattern=r"(?i)(Access-Control-Allow-Origin|allow_origins|origin)\s*[:=]\s*['\"]\*['\"]",  # presecurity: ignore
         message="Wildcard CORS can expose APIs to untrusted origins.",
         impact="Browsers may allow unwanted cross-origin access depending on credentials and headers.",
         recommendation="Restrict allowed origins to explicit trusted domains.",
@@ -232,7 +238,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("backend", "api"),
         languages=("python", "javascript", "typescript", "java"),
-        pattern=r"(?i)(verify_signature\s*[:=]\s*False|verify\s*:\s*false|algorithms\s*[:=]\s*\[\s*['\"]none['\"])",
+        pattern=r"(?i)(verify_signature\s*[:=]\s*False|verify\s*:\s*false|algorithms\s*[:=]\s*\[\s*['\"]none['\"])",  # presecurity: ignore
         message="JWT verification appears to be disabled or allows none algorithm.",
         impact="Attackers may forge authentication tokens.",
         recommendation="Require signature verification, expected issuer, audience, expiry, and strong algorithms.",
@@ -245,7 +251,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("github-actions", "ci-cd"),
         languages=("yaml",),
-        pattern=r"uses:\s+[^@\s]+/[^@\s]+@(main|master|latest|v?\d+)\b",
+        pattern=r"uses:\s+[^@\s]+/[^@\s]+@(main|master|latest|v?\d+)\b",  # presecurity: ignore
         message="GitHub Action is not pinned to an immutable commit SHA.",
         impact="A compromised or changed action tag can alter CI/CD behavior.",
         recommendation="Pin third-party actions to a full commit SHA and review update cadence.",
@@ -258,10 +264,11 @@ RULES: tuple[Rule, ...] = (
         confidence="low",
         platforms=("docker", "kubernetes", "infra"),
         languages=("dockerfile",),
-        pattern=r"(?im)^(FROM\s+.+)$",
+        pattern=r"(?im)^(FROM\s+.+)$",  # presecurity: ignore
         message="Dockerfile may run as root if no USER directive is present.",
         impact="Container breakout or app compromise has a larger blast radius.",
         recommendation="Add a non-root USER directive after creating an application user.",
+        requires_absent=r"(?im)^USER\s+\S+",
     ),
     Rule(
         id="terraform-public-sg",
@@ -271,7 +278,7 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("terraform", "aws", "infra"),
         languages=("hcl",),
-        pattern=r"cidr_blocks\s*=\s*\[[^\]]*0\.0\.0\.0/0",
+        pattern=r"cidr_blocks\s*=\s*\[[^\]]*0\.0\.0\.0/0",  # presecurity: ignore
         message="Infrastructure allows public ingress.",
         impact="Exposed services can be scanned and attacked from the internet.",
         recommendation="Restrict ingress to required CIDRs and ports.",
@@ -284,11 +291,180 @@ RULES: tuple[Rule, ...] = (
         confidence="medium",
         platforms=("kubernetes", "infra"),
         languages=("yaml",),
-        pattern=r"privileged:\s*true",
+        pattern=r"privileged:\s*true",  # presecurity: ignore
         message="Privileged containers weaken isolation.",
         impact="A compromised workload can gain host-level capabilities.",
         recommendation="Disable privileged mode and grant only required capabilities.",
         autofix="yaml_privileged_false",
+    ),
+    Rule(
+        id="nextjs-public-secret",
+        name="NEXT_PUBLIC secret-like variable",
+        owasp="A02:2021-Cryptographic Failures",
+        severity="critical",
+        confidence="high",
+        platforms=("nextjs", "frontend"),
+        languages=("javascript", "typescript", "tsx", "jsx", "text"),
+        pattern=r"NEXT_PUBLIC_[A-Z0-9_]*(SECRET|TOKEN|KEY|PASSWORD)[A-Z0-9_]*",  # presecurity: ignore
+        message="NEXT_PUBLIC variables are exposed to the browser bundle.",
+        impact="Secret-like values with NEXT_PUBLIC prefix are visible to users.",
+        recommendation="Remove public prefix and access the secret only on the server.",
+    ),
+    Rule(
+        id="express-state-changing-route",
+        name="State-changing Express route",
+        owasp="A01:2021-Broken Access Control",
+        severity="medium",
+        confidence="low",
+        platforms=("express", "node.js"),
+        languages=("javascript", "typescript"),
+        pattern=r"\b(app|router)\.(post|put|patch|delete)\s*\(",  # presecurity: ignore
+        message="State-changing route should be checked for auth, authorization, and CSRF assumptions.",
+        impact="Unauthenticated or cross-site requests can alter state if guards are missing.",
+        recommendation="Verify auth middleware, authorization checks, and CSRF/session protections.",
+    ),
+    Rule(
+        id="mongoose-find-by-id-param",
+        name="Direct object lookup by request parameter",
+        owasp="A01:2021-Broken Access Control",
+        severity="high",
+        confidence="low",
+        platforms=("node.js", "express", "nestjs"),
+        languages=("javascript", "typescript"),
+        pattern=r"\.findById\s*\(\s*(req\.params|params\.|request\.params)",  # presecurity: ignore
+        message="Direct lookup by request parameter may create IDOR if ownership is not checked.",
+        impact="Users may access records that belong to another account or tenant.",
+        recommendation="Filter by authenticated subject or tenant in the same query.",
+    ),
+    Rule(
+        id="django-raw-sql",
+        name="Django raw SQL",
+        owasp="A03:2021-Injection",
+        severity="high",
+        confidence="medium",
+        platforms=("django", "python"),
+        languages=("python",),
+        pattern=r"\.objects\.raw\s*\(|connection\.cursor\s*\(",  # presecurity: ignore
+        message="Raw SQL requires explicit parameter binding and review.",
+        impact="String-built SQL can become injection or authorization bypass.",
+        recommendation="Use ORM filters or parameterized queries.",
+    ),
+    Rule(
+        id="fastapi-open-redirect-risk",
+        name="Redirect to dynamic URL",
+        owasp="A01:2021-Broken Access Control",
+        severity="medium",
+        confidence="low",
+        platforms=("fastapi", "flask", "django"),
+        languages=("python",),
+        pattern=r"\b(RedirectResponse|redirect)\s*\([^'\"\n]",  # presecurity: ignore
+        message="Dynamic redirects can become open redirects.",
+        impact="Attackers can redirect users to phishing or token-stealing destinations.",
+        recommendation="Allow only relative paths or approved hosts.",
+    ),
+    Rule(
+        id="spring-spel-expression",
+        name="Spring expression parsing",
+        owasp="A03:2021-Injection",
+        severity="high",
+        confidence="medium",
+        platforms=("spring", "java"),
+        languages=("java",),
+        pattern=r"parseExpression\s*\(",  # presecurity: ignore
+        message="SpEL expression parsing can execute attacker-controlled expressions.",
+        impact="Untrusted expressions may read data or execute methods.",
+        recommendation="Avoid parsing user input as expressions; use allowlisted operations.",
+    ),
+    Rule(
+        id="java-runtime-exec",
+        name="Java Runtime exec",
+        owasp="A03:2021-Injection",
+        severity="critical",
+        confidence="medium",
+        platforms=("java", "spring"),
+        languages=("java",),
+        pattern=r"Runtime\.getRuntime\(\)\.exec\s*\(",  # presecurity: ignore
+        message="Runtime.exec can execute command strings.",
+        impact="Untrusted input can lead to command injection.",
+        recommendation="Avoid shell execution or use ProcessBuilder with strict argument allowlists.",
+    ),
+    Rule(
+        id="go-sql-format",
+        name="Go SQL string formatting",
+        owasp="A03:2021-Injection",
+        severity="high",
+        confidence="low",
+        platforms=("go", "backend"),
+        languages=("go",),
+        pattern=r"fmt\.Sprintf\s*\(\s*\"(SELECT|INSERT|UPDATE|DELETE)",  # presecurity: ignore
+        message="SQL built with fmt.Sprintf can become injectable.",
+        impact="Untrusted values can alter SQL query structure.",
+        recommendation="Use database/sql placeholders and parameter binding.",
+    ),
+    Rule(
+        id="rails-html-safe",
+        name="Rails html_safe",
+        owasp="A03:2021-Injection",
+        severity="high",
+        confidence="medium",
+        platforms=("ruby on rails", "ruby"),
+        languages=("ruby",),
+        pattern=r"\.html_safe\b",  # presecurity: ignore
+        message="html_safe disables Rails output escaping.",
+        impact="Untrusted strings can execute script in browsers.",
+        recommendation="Avoid html_safe on user-controlled content or sanitize explicitly.",
+    ),
+    Rule(
+        id="php-laravel-raw-query",
+        name="Laravel raw query",
+        owasp="A03:2021-Injection",
+        severity="high",
+        confidence="medium",
+        platforms=("php/laravel", "php"),
+        languages=("php",),
+        pattern=r"\b(DB::raw|whereRaw|orWhereRaw|selectRaw)\s*\(",  # presecurity: ignore
+        message="Raw query APIs require parameter binding and review.",
+        impact="String-built raw SQL can become injection.",
+        recommendation="Use query builder bindings or Eloquent constraints.",
+    ),
+    Rule(
+        id="kubernetes-hostpath",
+        name="Kubernetes hostPath volume",
+        owasp="A05:2021-Security Misconfiguration",
+        severity="high",
+        confidence="medium",
+        platforms=("kubernetes", "infra"),
+        languages=("yaml",),
+        pattern=r"hostPath:",  # presecurity: ignore
+        message="hostPath mounts host filesystem paths into containers.",
+        impact="Compromised workloads can access sensitive host files.",
+        recommendation="Avoid hostPath or constrain it with strict pod security controls.",
+    ),
+    Rule(
+        id="terraform-iam-wildcard",
+        name="Wildcard IAM permission",
+        owasp="A05:2021-Security Misconfiguration",
+        severity="high",
+        confidence="medium",
+        platforms=("terraform", "aws", "infra"),
+        languages=("hcl",),
+        pattern=r"\"(Action|Resource)\"\s*=\s*\"?\*\"?",  # presecurity: ignore
+        message="Wildcard IAM grants are over-broad.",
+        impact="Compromised credentials can access more resources than intended.",
+        recommendation="Scope IAM actions and resources to the minimum required set.",
+    ),
+    Rule(
+        id="github-actions-pull-request-target",
+        name="pull_request_target workflow",
+        owasp="A08:2021-Software and Data Integrity Failures",
+        severity="high",
+        confidence="medium",
+        platforms=("github-actions", "ci-cd"),
+        languages=("yaml",),
+        pattern=r"pull_request_target:",  # presecurity: ignore
+        message="pull_request_target runs with elevated token context.",
+        impact="Untrusted PR content can access secrets if checked out or executed unsafely.",
+        recommendation="Avoid checking out untrusted code or executing PR-controlled scripts.",
     ),
 )
 

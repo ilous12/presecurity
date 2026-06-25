@@ -13,6 +13,7 @@ Use the plugin command form inside an agent:
 ```text
 /presecurity init
 /presecurity scan
+/presecurity scan --base HEAD
 /presecurity autofix
 ```
 
@@ -21,6 +22,7 @@ You can also run the engine directly from this repository:
 ```bash
 python3 -m presecurity init
 python3 -m presecurity scan
+python3 -m presecurity scan --base HEAD
 python3 -m presecurity autofix
 ```
 
@@ -41,6 +43,24 @@ ordered remediation plan.
 `/presecurity autofix` applies only safe, deterministic fixes from the latest
 plan, then rescans to confirm the remaining state.
 
+## GitHub marketplace install
+
+See [docs/install-from-github.md](docs/install-from-github.md).
+
+Claude Code:
+
+```text
+/plugin marketplace add https://github.com/ilous12/presecurity
+/plugin install presecurity@presecurity-marketplace
+```
+
+Codex:
+
+```bash
+codex plugin marketplace add ilous12/presecurity --ref main --sparse .agents/plugins --sparse plugins/codex/presecurity
+codex plugin add presecurity@presecurity
+```
+
 ## Current scope
 
 - OWASP Top 10 mapped checks
@@ -52,4 +72,3 @@ plan, then rescans to confirm the remaining state.
 
 This is not a replacement for full SAST, DAST, dependency scanning, or manual
 application security review.
-

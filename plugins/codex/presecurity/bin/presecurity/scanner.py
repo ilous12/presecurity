@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import Any
 
+from .intent import analyze_intent
 from .rules import Rule, iter_rules
 from .state import utc_now
 
@@ -43,10 +44,11 @@ EXT_LANGUAGE = {
 
 SPECIAL_FILES = {
     "Dockerfile": "dockerfile",
+    "dockerfile": "dockerfile",
 }
 
 
-def scan(root: Path) -> dict[str, Any]:
+def scan(root: Path, diff_base: str = "HEAD") -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
     files_scanned = 0
     for path in iter_files(root):
@@ -59,6 +61,9 @@ def scan(root: Path) -> dict[str, Any]:
         files_scanned += 1
         for rule in iter_rules():
             if not rule_applies(rule, language, rel):
+                continue
+            absent = rule.absent_compile()
+            if absent and absent.search(text):
                 continue
             compiled = rule.compile()
             for line_no, line in enumerate(text.splitlines(), start=1):
@@ -73,6 +78,7 @@ def scan(root: Path) -> dict[str, Any]:
         "schema": 1,
         "generatedAt": utc_now(),
         "root": str(root),
+        "intent": analyze_intent(root, diff_base),
         "summary": {
             "filesScanned": files_scanned,
             "findings": len(ordered),
@@ -164,6 +170,7 @@ def print_plan(plan: dict[str, Any]) -> str:
         f"- files scanned: {summary['filesScanned']}",
         f"- findings: {summary['findings']} (critical {summary['critical']}, high {summary['high']}, medium {summary['medium']}, low {summary['low']})",
         f"- autofixable: {summary['autofixable']}",
+        f"- intent: {plan.get('intent', {}).get('summary', 'not available')}",
     ]
     for finding in plan["findings"][:50]:
         lines.append(

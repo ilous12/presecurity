@@ -9,6 +9,7 @@ Use this skill when the user asks for:
 
 - `/presecurity init`
 - `/presecurity scan`
+- `/presecurity scan --base <git-ref>`
 - `/presecurity autofix`
 - `/presecurity cleanup`
 
@@ -33,6 +34,7 @@ For scan results, summarize:
 - critical/high findings first
 - OWASP category
 - impacted file and line
+- diff intent summary and security-relevant changed areas
 - whether autofix is available
 - planned order of remediation
 
