@@ -29,6 +29,7 @@ After installation, use:
 /presecurity init
 /presecurity scan
 /presecurity autofix
+/presecurity doctor
 ```
 
 The Claude marketplace definition lives at `.claude-plugin/marketplace.json`.
@@ -56,8 +57,8 @@ Desktop flow:
 2. Open Plugins.
 3. Add marketplace source `ilous12/presecurity`.
 4. Install `presecurity`.
-5. Start a new thread and invoke `/presecurity init`, `/presecurity scan`, or
-   `/presecurity autofix`.
+5. Start a new thread and invoke `/presecurity init`, `/presecurity scan`,
+   `/presecurity autofix`, or `/presecurity doctor`.
 
 ## No separate scanner install
 

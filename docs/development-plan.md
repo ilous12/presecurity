@@ -19,8 +19,8 @@ Deliverables:
 - GitHub-hosted Claude marketplace at `.claude-plugin/marketplace.json`.
 - GitHub-hosted Codex marketplace at `.agents/plugins/marketplace.json`.
 - Bundled scanner inside both plugin packages.
-- `/presecurity init`, `/presecurity scan`, `/presecurity autofix`, and
-  `/presecurity cleanup` instructions.
+- `/presecurity init`, `/presecurity scan`, `/presecurity autofix`,
+  `/presecurity cleanup`, and `/presecurity doctor` instructions.
 - `docs/install-from-github.md`.
 - Plugin validation in local verification.
 

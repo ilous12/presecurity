@@ -1,6 +1,6 @@
 ---
 name: presecurity
-description: Use when the user invokes /presecurity init, /presecurity scan, or /presecurity autofix to manage local security scan state and safe fixes.
+description: Use when the user invokes /presecurity init, /presecurity scan, /presecurity autofix, /presecurity cleanup, or /presecurity doctor.
 ---
 
 # presecurity
@@ -11,6 +11,7 @@ Use this skill when the user asks for:
 - `/presecurity scan`
 - `/presecurity autofix`
 - `/presecurity cleanup`
+- `/presecurity doctor`
 
 ## Workflow
 
@@ -25,6 +26,7 @@ Use this skill when the user asks for:
 6. Run `autofix` to apply safe deterministic fixes from
    the current plan.
 7. Run `cleanup` when plugin state should be removed.
+8. Run `doctor` when the user wants to check install/runtime/project state.
 
 ## Reporting
 
@@ -42,3 +44,9 @@ For autofix, report:
 - fixes applied
 - skipped items and why
 - remaining findings after rescan
+
+For doctor, report:
+
+- environment status
+- whether `.presecurity/` has been initialized
+- missing files or tools

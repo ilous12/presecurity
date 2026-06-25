@@ -2,7 +2,9 @@ from pathlib import Path
 
 from presecurity.intent import parse_changed_files
 from presecurity.autofix import apply_autofix
+from presecurity.doctor import run_doctor
 from presecurity.scanner import scan
+from presecurity.state import ensure_state
 
 
 def test_scan_detects_yaml_and_eval(tmp_path: Path):
@@ -71,3 +73,13 @@ def test_parse_changed_files_summarizes_security_hints():
     assert changed[0].added == 4
     assert "api-entrypoint" in changed[0].hints
     assert "database-access" in changed[0].hints
+
+
+def test_doctor_reports_initialized_state(tmp_path: Path):
+    ensure_state(tmp_path)
+
+    result = run_doctor(tmp_path)
+
+    assert result["summary"] in {"ready", "environment issue"}
+    assert any(item["name"] == ".presecurity" and item["ok"] for item in result["checks"])
+    assert any(item["name"] == "rules" and item["ok"] for item in result["checks"])

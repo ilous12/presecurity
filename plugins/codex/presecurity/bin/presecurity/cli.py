@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 
 from .autofix import apply_autofix
+from .doctor import print_doctor, run_doctor
 from .scanner import plan_as_json, print_plan, scan
 from .state import ensure_state, read_plan, state_paths, write_plan
 
@@ -18,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("scan", help="Scan project and write .presecurity/scan-plan.json")
     sub.add_parser("autofix", help="Apply safe fixes from the latest scan plan")
     sub.add_parser("cleanup", help="Remove .presecurity state files")
+    sub.add_parser("doctor", help="Check presecurity environment and project state")
     return parser
 
 
@@ -61,5 +63,15 @@ def main(argv: list[str] | None = None) -> int:
             shutil.rmtree(paths["dir"])
         print(f"presecurity state removed: {paths['dir']}")
         return 0
+
+    if args.command == "doctor":
+        result = run_doctor(root)
+        if args.json:
+            import json
+
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            print(print_doctor(result))
+        return 0 if result["ok"] else 1
 
     return 2

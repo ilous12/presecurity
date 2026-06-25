@@ -1,6 +1,6 @@
 ---
-description: Initialize, scan, or autofix security issues with presecurity
-argument-hint: "init|scan|autofix|cleanup"
+description: Initialize, scan, autofix, cleanup, or diagnose presecurity
+argument-hint: "init|scan|autofix|cleanup|doctor"
 ---
 
 # /presecurity
@@ -13,6 +13,7 @@ Supported forms:
 - `/presecurity scan`
 - `/presecurity autofix`
 - `/presecurity cleanup`
+- `/presecurity doctor`
 
 When invoked:
 
@@ -23,6 +24,7 @@ When invoked:
 4. For `autofix`, apply safe fixes only, rescan, and report remaining manual
    review items.
 5. For `cleanup`, remove `.presecurity/` state files.
+6. For `doctor`, report environment and project-state checks.
 
 If `${CLAUDE_PLUGIN_ROOT}` is unavailable, locate the installed presecurity plugin
 directory and run its bundled `bin/run-presecurity.sh`.

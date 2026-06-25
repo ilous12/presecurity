@@ -48,13 +48,14 @@ codex plugin add presecurity@presecurity
 
 ## 지원 커맨드
 
-presecurity는 네 개의 커맨드만 지원합니다.
+presecurity는 다섯 개의 커맨드를 지원합니다.
 
 ```text
 /presecurity init
 /presecurity scan
 /presecurity autofix
 /presecurity cleanup
+/presecurity doctor
 ```
 
 ### 1. `/presecurity init`
@@ -114,6 +115,21 @@ presecurity는 네 개의 커맨드만 지원합니다.
 
 플러그인을 더 이상 쓰지 않거나, 스캔 이력을 지우고 싶을 때 사용합니다.
 
+### 5. `/presecurity doctor`
+
+presecurity가 현재 프로젝트에서 제대로 동작할 수 있는지 점검합니다.
+
+확인하는 항목:
+
+- Python 런타임
+- git 설치 여부
+- 현재 폴더가 git repository인지
+- `.presecurity/` 초기화 여부
+- `config.json`, `history.jsonl`, `scan-plan.json` 존재 여부
+- 내장 룰과 지원 플랫폼 정보
+
+처음 설치한 뒤 문제가 있는지 확인하고 싶을 때 사용합니다.
+
 ## 일반 사용 흐름
 
 처음 사용하는 프로젝트에서는 이렇게 시작합니다.
@@ -141,6 +157,12 @@ presecurity는 네 개의 커맨드만 지원합니다.
 /presecurity cleanup
 ```
 
+설치나 초기화 상태를 확인하고 싶으면 다음을 실행합니다.
+
+```text
+/presecurity doctor
+```
+
 ## 직접 실행
 
 플러그인 없이 저장소에서 직접 실행할 수도 있습니다.
@@ -150,6 +172,7 @@ python3 -m presecurity init
 python3 -m presecurity scan
 python3 -m presecurity autofix
 python3 -m presecurity cleanup
+python3 -m presecurity doctor
 ```
 
 ## 현재 지원 범위
@@ -203,6 +226,7 @@ Commands:
 /presecurity scan
 /presecurity autofix
 /presecurity cleanup
+/presecurity doctor
 ```
 
 Command meanings:
@@ -211,6 +235,7 @@ Command meanings:
 - `scan`: scan the project and write `.presecurity/scan-plan.json`.
 - `autofix`: apply safe deterministic fixes, then rescan.
 - `cleanup`: remove `.presecurity/`.
+- `doctor`: check runtime, git, state files, rules, and platform support.
 
 ## License
 
