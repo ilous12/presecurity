@@ -1,0 +1,21 @@
+{
+  "name": "presecurity",
+  "interface": {
+    "displayName": "presecurity"
+  },
+  "plugins": [
+    {
+      "name": "presecurity",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex/presecurity"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
+

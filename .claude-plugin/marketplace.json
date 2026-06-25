@@ -1,0 +1,14 @@
+{
+  "name": "presecurity-marketplace",
+  "owner": {
+    "name": "presecurity"
+  },
+  "plugins": [
+    {
+      "name": "presecurity",
+      "source": "./plugins/claude/presecurity",
+      "description": "Agent-native OWASP security scanning and safe autofix planning for Claude Code."
+    }
+  ]
+}
+

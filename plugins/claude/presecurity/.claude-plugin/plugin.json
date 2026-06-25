@@ -1,0 +1,9 @@
+{
+  "name": "presecurity",
+  "version": "0.1.0",
+  "description": "Agent-native OWASP security scanning and safe autofix planning for Claude Code.",
+  "author": {
+    "name": "presecurity"
+  },
+  "homepage": "https://github.com/ilous12/presecurity"
+}
