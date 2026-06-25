@@ -9,7 +9,6 @@ Use this skill when the user asks for:
 
 - `/presecurity init`
 - `/presecurity scan`
-- `/presecurity scan --base <git-ref>`
 - `/presecurity autofix`
 - `/presecurity cleanup`
 

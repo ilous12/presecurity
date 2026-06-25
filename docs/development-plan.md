@@ -72,12 +72,10 @@ Deliverables:
 - Security hints for auth, API routes, database access, outbound HTTP, file
   system access, shell execution, rendered HTML, CI/CD, and infrastructure.
 - `intent` section in `.presecurity/scan-plan.json`.
-- `--base <git-ref>` option for scan.
 
 Acceptance:
 
 - `scan` includes an intent summary when git diff is available.
-- `scan --base <ref>` changes the diff base.
 - Tests cover diff parsing and hint classification.
 
 ## Test plan
@@ -95,7 +93,6 @@ Acceptance:
 - `init` creates `.presecurity/config.json`, `history.jsonl`, and
   `scan-plan.json`.
 - `scan` writes findings and intent to `scan-plan.json`.
-- `scan --base HEAD` accepts a git base argument.
 - `autofix` applies safe fixes and rescans.
 - `cleanup` removes `.presecurity`.
 

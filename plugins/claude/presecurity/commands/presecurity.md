@@ -11,7 +11,6 @@ Supported forms:
 
 - `/presecurity init`
 - `/presecurity scan`
-- `/presecurity scan --base <git-ref>`
 - `/presecurity autofix`
 - `/presecurity cleanup`
 

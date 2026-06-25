@@ -15,8 +15,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json", action="store_true", help="Print JSON output")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("init", help="Create .presecurity state files")
-    scan_parser = sub.add_parser("scan", help="Scan project and write .presecurity/scan-plan.json")
-    scan_parser.add_argument("--base", default="HEAD", help="Git base ref for intent analysis")
+    sub.add_parser("scan", help="Scan project and write .presecurity/scan-plan.json")
     sub.add_parser("autofix", help="Apply safe fixes from the latest scan plan")
     sub.add_parser("cleanup", help="Remove .presecurity state files")
     return parser
@@ -33,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "scan":
         ensure_state(root)
-        plan = scan(root, diff_base=args.base)
+        plan = scan(root)
         write_plan(root, plan)
         print(plan_as_json(plan) if args.json else print_plan(plan))
         return 1 if plan["summary"]["critical"] else 0
