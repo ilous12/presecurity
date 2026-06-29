@@ -25,6 +25,8 @@ The host agent reads those Markdown instructions and performs the workflow.
 
 ## Workflow Contract
 
+`/presecurity` without arguments is command-list only and must not scan.
+
 ```text
 read -> analyze -> report -> autofix -> rescan
 ```

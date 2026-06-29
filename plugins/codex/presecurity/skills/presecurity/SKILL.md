@@ -11,7 +11,11 @@ deterministic edits.
 
 ## Operating Contract
 
-Default scan workflow:
+`/presecurity` with no arguments is help-only. Show the available command list
+and stop. Do not scan unless the user invokes `/presecurity scan` or explicitly
+asks to scan through `$presecurity`.
+
+Scan workflow:
 
 ```text
 read -> analyze -> report
@@ -64,7 +68,7 @@ Use this skill for:
 - `Use $presecurity to review this repository.`
 - `Use $presecurity to scan this folder.`
 - `Use $presecurity to apply safe autofixes.`
-- `/presecurity`
+- `/presecurity` to show commands only
 - `/presecurity scan`
 - `/presecurity autofix`
 - `/presecurity doctor`

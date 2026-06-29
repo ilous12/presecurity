@@ -11,7 +11,19 @@ artifacts, and apply only safe deterministic edits.
 
 ## Default Behavior
 
-When the user invokes `/presecurity` or `/presecurity scan`, run:
+When the user invokes `/presecurity` with no arguments, show only this command
+menu and stop:
+
+```text
+/presecurity scan      Read, analyze, and write report artifacts.
+/presecurity autofix   Apply safe-only fixes, rescan, and update the report.
+/presecurity doctor    Verify plugin surfaces and artifact write access.
+/presecurity cleanup   Remove generated .presecurity artifacts.
+```
+
+Do not start a scan from `/presecurity` alone.
+
+When the user invokes `/presecurity scan`, run:
 
 ```text
 read -> analyze -> report
@@ -22,9 +34,9 @@ the full structured artifact bundle before it is complete.
 
 ## Screen Output
 
-During `/presecurity` and `/presecurity scan`, show only short progress
-updates on screen. Do not stream detailed analysis, raw findings, file-by-file
-notes, chain-of-thought, or patch suggestions while the scan is running.
+During `/presecurity scan`, show only short progress updates on screen. Do not
+stream detailed analysis, raw findings, file-by-file notes, chain-of-thought,
+or patch suggestions while the scan is running.
 
 Use concise progress lines such as:
 

@@ -70,11 +70,17 @@ Codex.
 Default `/presecurity` behavior:
 
 ```text
+show available commands only
+```
+
+`/presecurity` by itself does not start a scan. Use `/presecurity scan` to run:
+
+```text
 read -> analyze -> report
 ```
 
-`/presecurity scan` has the same behavior. A scan is not complete until
-`report.md` and the structured JSON artifacts are written.
+A scan is not complete until `report.md` and the structured JSON artifacts are
+written.
 
 During a scan, the screen should show progress only. Detailed findings,
 evidence, attack paths, and remediation notes belong in `report.md` and JSON
