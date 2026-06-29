@@ -1,25 +1,36 @@
 {
   "name": "presecurity",
-  "version": "0.1.0",
-  "description": "코딩 에이전트가 만든 코드를 OWASP 기준으로 점검하고 안전한 자동수정을 실행합니다.",
+  "version": "0.2.0",
+  "description": "Markdown-first security review plugin that reads, analyzes, reports, and applies safe autofixes for general codebases.",
   "author": {
     "name": "presecurity"
   },
   "repository": "https://github.com/ilous12/presecurity",
   "license": "MIT",
-  "keywords": ["security", "sast", "owasp", "autofix", "agent", "보안", "자동수정"],
+  "keywords": [
+    "security",
+    "sast",
+    "agent",
+    "autofix",
+    "threat-model",
+    "code-review",
+    "보안",
+    "자동수정"
+  ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "presecurity 보안 점검",
-    "shortDescription": "에이전트 코드의 보안 이슈를 찾고 안전하게 자동 수정합니다.",
-    "longDescription": "presecurity는 Claude Code와 Codex Desktop에서 코딩 에이전트를 더 안전하게 쓰기 위한 보안 점검 플러그인입니다. OWASP Top 10 관점으로 위험 패턴을 스캔하고, 파일과 라인, 영향도, 수정 계획을 기록한 뒤 자동으로 처리 가능한 항목을 순차적으로 수정합니다.",
+    "displayName": "presecurity",
+    "shortDescription": "Read, analyze, report, and safe-autofix security issues.",
+    "longDescription": "presecurity is a Markdown-first security review plugin for Codex. It borrows the artifact discipline of Codex Security while staying local-first and lightweight: read the codebase, build a threat model, produce report artifacts, and apply only safe deterministic fixes.",
     "developerName": "presecurity",
     "category": "Security",
-    "capabilities": ["Interactive", "Write"],
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
     "defaultPrompt": [
-      "/presecurity doctor",
-      "/presecurity scan",
-      "/presecurity autofix"
+      "Use $presecurity to review this repository.",
+      "Use $presecurity to apply safe autofixes from the latest report."
     ],
     "brandColor": "#1F7A5C",
     "composerIcon": "./assets/icon.png",

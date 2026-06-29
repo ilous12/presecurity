@@ -5,13 +5,54 @@ on:
   pull_request:
 
 jobs:
-  test:
+  validate-markdown-plugin:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # presecurity: ignore
-      - uses: actions/setup-python@v5 # presecurity: ignore
-        with:
-          python-version: "3.12"
-      - run: python -m pip install -e .
-      - run: python -m pip install pytest
-      - run: pytest
+      - uses: actions/checkout@v4
+      - name: Validate required plugin files
+        run: |
+          test -f README.md
+          test -f docs/implementation-readiness.md
+          test -f docs/development-plan.md
+          test -f docs/supported-platforms.md
+          test -f plugins/claude/presecurity/commands/presecurity.md
+          test -f plugins/codex/presecurity/skills/presecurity/SKILL.md
+          test -f plugins/claude/presecurity/.claude-plugin/plugin.json
+          test -f plugins/codex/presecurity/.codex-plugin/plugin.json
+      - name: Validate JSON manifests
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('plugins/claude/presecurity/.claude-plugin/plugin.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('plugins/codex/presecurity/.codex-plugin/plugin.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('.agents/plugins/marketplace.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json','utf8'))"
+      - name: Validate example fixture corpus
+        run: |
+          test -f examples/README.md
+          test -f examples/web/javascript-dom/app.js
+          test -f examples/web/typescript-nextjs/route.ts
+          test -f examples/web/react/DangerousProfile.jsx
+          test -f examples/web/vue/UserBio.vue
+          test -f examples/web/svelte/Profile.svelte
+          test -f examples/backend/node-express/server.js
+          test -f examples/backend/python-fastapi/main.py
+          test -f examples/backend/java-spring/UserController.java
+          test -f examples/backend/kotlin-ktor/Application.kt
+          test -f examples/backend/go/http_server.go
+          test -f examples/backend/ruby-rails/users_controller.rb
+          test -f examples/backend/php-laravel/UserController.php
+          test -f examples/mobile/android-java/WebActivity.java
+          test -f examples/mobile/android-kotlin/MainActivity.kt
+          test -f examples/mobile/ios-swift/NetworkClient.swift
+          test -f examples/mobile/ios-objective-c/LoginViewController.m
+          test -f examples/mobile/flutter-dart/api_client.dart
+          test -f examples/mobile/ios-plist/Info.plist
+          test -f examples/native/c/vulnerable.c
+          test -f examples/native/cpp/vulnerable.cpp
+          test -f examples/config/json/appsettings.json
+          test -f examples/config/yaml/github-actions.yml
+          test -f examples/config/xml/android-network-security-config.xml
+          test -f examples/config/docker/Dockerfile
+          test -f examples/config/terraform/main.tf
+          test -f examples/config/gradle/build.gradle
+          test -f examples/config/maven/pom.xml
+          test -f examples/config/github-actions/workflow.yml

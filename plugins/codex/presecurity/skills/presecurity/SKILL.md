@@ -1,66 +1,307 @@
 ---
 name: presecurity
-description: Use when the user invokes /presecurity init, /presecurity scan, /presecurity autofix, /presecurity cleanup, or /presecurity doctor.
+description: Use when the user asks to run presecurity, scan a codebase for security, produce presecurity artifacts, or apply presecurity safe autofixes.
 ---
 
 # presecurity
 
-Use this skill when the user asks for:
+presecurity is a Markdown-first security review plugin. Execute this workflow
+directly by reading files, writing artifacts, and applying only safe
+deterministic edits.
 
-- `/presecurity init`
+## Operating Contract
+
+Default scan workflow:
+
+```text
+read -> analyze -> report
+```
+
+Do not stop after analysis. A scan is complete only after `report.md`,
+`findings.json`, `coverage.json`, and the rest of the artifact bundle are
+written.
+
+Autofix workflow:
+
+```text
+read latest artifacts -> classify fixes -> apply safe-only fixes -> rescan -> update report
+```
+
+Git is optional. If Git is unavailable, treat the target as a local directory
+snapshot. Do not require commit hashes, branches, pull requests, or history.
+
+## Invocation Forms
+
+Use this skill for:
+
+- `Use $presecurity to review this repository.`
+- `Use $presecurity to scan this folder.`
+- `Use $presecurity to apply safe autofixes.`
+- `/presecurity`
 - `/presecurity scan`
 - `/presecurity autofix`
-- `/presecurity cleanup`
 - `/presecurity doctor`
+- `/presecurity cleanup`
 
-## Workflow
+## Target Resolution
 
-1. Treat the current workspace as the project root unless the user provides a
-   different path.
-2. Prefer the bundled plugin runner when available:
-   `<installed-plugin-root>/bin/run-presecurity.sh --root . <command>`.
-   Run it directly from the project root. Do not prefix it with `bash` and do
-   not use `$PWD`.
-3. If the repository package is installed in the environment, `python3 -m presecurity --root . <command>` is also valid.
-4. Run `init` for initialization.
-5. Run `scan` to create or refresh
-   `.presecurity/scan-plan.json`.
-6. Run `autofix` to rescan, discard stale or false-positive plan items, and
-   apply every remaining planned fix.
-   Do not stop because an item has no narrow deterministic fixer label; continue
-   with automatic source edits.
-7. Run `cleanup` when plugin state should be removed.
-8. Run `doctor` when the user wants to check install/runtime/project state.
+1. Use the current workspace as the target unless the user provides a path.
+2. Exclude dependency/build/cache folders:
+   - `.git`
+   - `.presecurity`
+   - `node_modules`
+   - `.venv`
+   - `venv`
+   - `dist`
+   - `build`
+   - `coverage`
+   - `.gradle`
+   - `DerivedData`
+   - `Pods`
+   - `.dart_tool`
+3. Include source-like and config-like files across general codebases:
+   - JavaScript, TypeScript, JSX, TSX
+   - Python
+   - Java, Kotlin
+   - Swift, Objective-C
+   - Dart
+   - Go
+   - Ruby
+   - PHP
+   - C, C++
+   - JSON, YAML, XML, plist
+   - Dockerfile
+   - Terraform
+   - Gradle, Maven
+   - GitHub Actions and CI configuration
 
-## Reporting
+## Artifact Directory
 
-For scan results, summarize:
+Create artifacts under:
 
-- critical/high findings first
-- OWASP category
-- impacted file and line
-- diff intent summary and security-relevant changed areas
-- whether autofix is available
-- planned order of remediation
+```text
+.presecurity/scans/scan-YYYYMMDD-HHMMSS/
+```
 
-Do not show false-positive candidates and do not create a separate
-false-positive section. If a finding is filtered by the scanner, omit it
-entirely from the user-facing response. If you conclude a recorded finding is a
-false positive, omit it from the response instead of asking the user to handle
-it.
+Required files:
 
-For autofix, report:
+- `scan-manifest.json`
+- `repository-map.json`
+- `threat-model.json`
+- `findings.json`
+- `coverage.json`
+- `report.md`
 
-- fixes applied
-- remaining findings after rescan
+Autofix additionally writes:
 
-If findings remain after the bundled `autofix` command, inspect
-`.presecurity/scan-plan.json`, edit the affected files yourself, and rerun
-`scan`/`autofix` until the plan is exhausted or a non-recoverable tooling error
-occurs. Do not ask which item to fix first.
+- `fix-plan.json`
+- `autofix-result.json`
 
-For doctor, report:
+## Read Phase
 
-- environment status
-- whether `.presecurity/` has been initialized
-- missing files or tools
+Build `scan-manifest.json` and `repository-map.json`.
+
+`scan-manifest.json` must include:
+
+- `schemaVersion`
+- `scanId`
+- `tool`
+- `mode`
+- `target.type`
+- `target.rootPath`
+- `sourceSnapshot.createdAt`
+- `sourceSnapshot.fileCount`
+- `sourceSnapshot.hashAlgorithm`
+- `languages`
+- `artifactPaths`
+- `limitations`
+
+`repository-map.json` must include:
+
+- files reviewed
+- languages and frameworks
+- entrypoint candidates
+- untrusted input candidates
+- trust boundary hints
+- sensitive sink candidates
+- dependency files
+- configuration files
+- skipped files with reasons
+
+## Analyze Phase
+
+Build `threat-model.json` and `findings.json`.
+
+Analyze code intent first:
+
+- who controls the input
+- where the input flows
+- what trust or auth boundary is crossed
+- which sensitive sink or privileged operation is reached
+- what realistic impact follows
+- what evidence supports the claim
+- what counterevidence weakens the claim
+- what proof gap remains
+
+Threat model fields:
+
+- `assets`
+- `entrypoints`
+- `untrustedInputs`
+- `trustBoundaries`
+- `authAssumptions`
+- `sensitiveDataPaths`
+- `priorityReviewAreas`
+
+Finding fields:
+
+- `id`
+- `title`
+- `category`
+- `severity`
+- `confidence`
+- `reachability`
+- `exploitability`
+- `businessImpact`
+- `files`
+- `attackPath`
+- `evidence`
+- `counterEvidence`
+- `proofGap`
+- `recommendation`
+- `autofix`
+
+## Threat Categories
+
+Assign one primary category:
+
+| ID | Category |
+| --- | --- |
+| T01 | Injection |
+| T02 | Broken Authentication |
+| T03 | Broken Authorization |
+| T04 | SSRF / Unsafe Network |
+| T05 | Secret Exposure |
+| T06 | Insecure Storage |
+| T07 | Crypto Misuse |
+| T08 | Deserialization |
+| T09 | Path / File Access |
+| T10 | XSS / HTML Injection |
+| T11 | WebView / Client Bridge |
+| T12 | Deep Link / Intent |
+| T13 | Insecure Config |
+| T14 | Supply Chain |
+| T15 | CI/CD / Build Script |
+| T16 | Business Logic |
+| T17 | Multi-Tenant Isolation |
+| T18 | Logging / Error Leak |
+| T19 | Race / TOCTOU |
+| T20 | Resource Abuse |
+| T21 | Native / Memory Safety |
+| T22 | AI Agent / Tool Risk |
+
+## Severity Model
+
+- `critical`: RCE, full auth bypass, broad secret/data exfiltration, payment or
+  tenant takeover.
+- `high`: exploitable injection, SSRF, privilege escalation, account takeover,
+  sensitive token exposure.
+- `medium`: conditional exploitability, scoped data exposure, insecure config,
+  weak storage, partial authorization gap.
+- `low`: hardening issue or difficult exploit path.
+- `info`: review signal without a confirmed vulnerability.
+
+Always separate:
+
+- `severity`
+- `confidence`
+- `reachability`
+- `exploitability`
+- `businessImpact`
+
+## Report Phase
+
+Build `coverage.json` and `report.md`.
+
+`coverage.json` must include:
+
+- `reviewedFiles`
+- `skippedFiles`
+- `deferredSurfaces`
+- `limitations`
+- `proofGaps`
+
+`report.md` must include:
+
+1. Summary
+2. Target and snapshot
+3. Coverage and limitations
+4. Threat model summary
+5. Findings by severity
+6. Finding details
+7. Safe autofix candidates
+8. Review-required remediations
+9. Blocked or deferred areas
+
+This report step is mandatory for every scan.
+
+## Autofix Policy
+
+Classify each finding:
+
+- `safe`: narrow deterministic change with low behavior risk.
+- `review-required`: security policy or business intent decision needed.
+- `blocked`: intent unclear or fix is too broad.
+
+Only apply `safe` fixes. Never apply `review-required` or `blocked` fixes.
+
+Safe examples:
+
+- `yaml.load(...)` to `yaml.safe_load(...)` when call shape is simple.
+- `debug=True` to `debug=False` in production-like app entry points.
+- `verify=False` to `verify=True` when no local/test guard exists.
+- unsafe plain DOM assignment to text assignment when no HTML intent exists.
+- clearly accidental hardcoded credential-like value to empty placeholder plus
+  report recommendation.
+
+Review-required examples:
+
+- authz model changes
+- payment or tenant logic changes
+- URL allowlist design
+- Android cleartext or iOS ATS policy tightening
+- crypto migration that affects stored data compatibility
+
+## Autofix Workflow
+
+1. Read latest `.presecurity/scans/*/findings.json`.
+2. Write `fix-plan.json`.
+3. Apply only `safe` fixes using the smallest edit possible.
+4. Write `autofix-result.json` with exact changed files and skipped items.
+5. Rescan changed files or the full target.
+6. Update `report.md` with fixed, remaining, and deferred findings.
+
+## Doctor
+
+For doctor requests, verify:
+
+- required plugin Markdown files exist
+- target root is readable
+- artifact directory can be created
+- no bundled runtime runner is required
+- Git status is available only if Git exists
+
+## Cleanup
+
+For cleanup requests, remove only `.presecurity/` from the target root.
+
+## Final Response
+
+Report:
+
+- artifact directory
+- total findings by severity
+- safe fixes applied
+- review-required findings
+- blocked findings
+- proof gaps and limitations

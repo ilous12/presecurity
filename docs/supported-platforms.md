@@ -1,28 +1,114 @@
 # Supported platforms
 
-presecurity tracks security patterns for these initial platform families:
+presecurity is designed for general-purpose codebases. The implementation
+surface is Markdown guidance for the host coding agent, not a language-specific
+runtime.
 
-1. React
-2. Next.js
-3. Vue
-4. Svelte
-5. Node.js
-6. Express
-7. NestJS
-8. Python
-9. Django
-10. FastAPI
-11. Flask
-12. Java
-13. Spring
-14. Go
-15. Ruby on Rails
-16. PHP/Laravel
-17. Docker
-18. Kubernetes
-19. Terraform
-20. GitHub Actions
+## Web
 
-Coverage is intentionally rule-based in the MVP. Later releases should add
-AST-aware rules, Semgrep/CodeQL bridge modes, and runtime DAST helpers.
+Supported:
 
+- JavaScript
+- TypeScript
+- React
+- Next.js
+- Vue
+- Svelte
+
+Review focus:
+
+- XSS and unsafe HTML rendering
+- server-side request flows and SSRF
+- route handlers and server actions
+- auth/session checks
+- secrets in client bundles
+- unsafe redirects
+- prototype pollution and dependency risk
+
+## Backend
+
+Supported:
+
+- Node.js
+- Python
+- Java
+- Kotlin
+- Go
+- Ruby
+- PHP
+
+Review focus:
+
+- injection
+- broken auth
+- broken authorization
+- tenant isolation
+- file upload and path traversal
+- deserialization
+- unsafe outbound network requests
+- logging and error leaks
+- rate limit and resource abuse gaps
+
+## Mobile
+
+Supported:
+
+- Java
+- Kotlin
+- Swift
+- Objective-C
+- Dart
+- plist
+
+Review focus:
+
+- Android manifest exported components
+- Android cleartext traffic and network security config
+- WebView JavaScript bridge risk
+- intent extras and deep links
+- iOS ATS exceptions
+- Keychain and local storage
+- Flutter platform channels
+- Firebase and mobile config exposure
+
+## Native
+
+Supported:
+
+- C
+- C++
+
+Review focus:
+
+- bounds checks
+- unsafe string and memory functions
+- integer overflow
+- use-after-free
+- format string risk
+- unsafe file and IPC handling
+
+## Config, Build, and Supply Chain
+
+Supported:
+
+- JSON
+- YAML
+- XML
+- plist
+- Dockerfile
+- Terraform
+- Gradle
+- Maven
+- GitHub Actions
+- generic CI configuration
+
+Review focus:
+
+- secrets in configuration
+- debug and permissive flags
+- overbroad permissions
+- untrusted CI execution
+- dependency confusion
+- unsafe install hooks
+- unsigned release paths
+- public storage and network exposure

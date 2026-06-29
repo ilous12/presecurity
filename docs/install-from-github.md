@@ -1,7 +1,7 @@
 # Install from GitHub
 
 presecurity is distributed as a GitHub-hosted plugin marketplace repository for
-Claude Code and Codex Desktop.
+Claude Code and Codex.
 
 Repository:
 
@@ -17,37 +17,36 @@ Add this repository as a Claude plugin marketplace:
 /plugin marketplace add https://github.com/ilous12/presecurity
 ```
 
-Then install the plugin from that marketplace:
+Install the plugin:
 
 ```text
 /plugin install presecurity@presecurity-marketplace
 ```
 
-After installation, use:
+Use:
 
 ```text
-/presecurity init
+/presecurity
 /presecurity scan
 /presecurity autofix
 /presecurity doctor
+/presecurity cleanup
 ```
+
+`/presecurity scan` automatically generates `report.md` and the structured
+JSON artifact bundle.
 
 The Claude marketplace definition lives at `.claude-plugin/marketplace.json`.
 
-## Codex Desktop / Codex CLI
+## Codex
 
 Codex can read this repository as a repo marketplace because it contains
 `.agents/plugins/marketplace.json`.
 
 CLI flow:
 
-```bash
-codex plugin marketplace add \
-  ilous12/presecurity \
-  --ref main \
-  --sparse .agents/plugins \
-  --sparse plugins/codex/presecurity
-
+```text
+codex plugin marketplace add ilous12/presecurity --ref main --sparse .agents/plugins --sparse plugins/codex/presecurity
 codex plugin add presecurity@presecurity
 ```
 
@@ -57,11 +56,10 @@ Desktop flow:
 2. Open Plugins.
 3. Add marketplace source `ilous12/presecurity`.
 4. Install `presecurity`.
-5. Start a new thread and invoke `/presecurity init`, `/presecurity scan`,
-   `/presecurity autofix`, or `/presecurity doctor`.
+5. Start a new thread.
+6. Ask Codex to use `$presecurity`.
 
-## No separate scanner install
+## Runtime Model
 
-Both plugin packages include a bundled copy of the Python scanner under
-`bin/presecurity`. The host plugin runner sets `PYTHONPATH` to that bundled
-engine before running commands.
+presecurity is Markdown-first. The command and skill files define the workflow,
+artifact contract, threat taxonomy, and safe autofix policy for the host agent.

@@ -1,7 +1,7 @@
 {
   "name": "presecurity",
   "interface": {
-    "displayName": "presecurity 보안 점검"
+    "displayName": "presecurity"
   },
   "plugins": [
     {

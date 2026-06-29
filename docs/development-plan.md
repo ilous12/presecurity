@@ -1,111 +1,250 @@
-# presecurity development plan
+# presecurity development TODO
 
-## Target
+This TODO assumes a Markdown-first plugin. The agent host reads the
+command/skill contract and performs repository inspection, artifact writing,
+and safe edits directly.
 
-Build an internal GitHub-installable security plugin for Claude Code and Codex
-Desktop. The plugin should scan code produced or modified during agent workflows,
-list security findings, estimate impact, produce a fix plan, and apply only safe
-deterministic fixes.
+## Design Baseline
 
-The active delivery scope is Phase 1, Phase 2, and Phase 3.
+```text
+read -> analyze -> report -> autofix -> rescan
+```
 
-## Phase 1. Installable plugin foundation
+presecurity borrows Codex Security's public artifact model:
 
-Goal: employees can install presecurity from GitHub and run the same command
-contract in Claude Code and Codex.
+- `scan-manifest.json`
+- `repository-map.json`
+- `threat-model.json`
+- `findings.json`
+- `coverage.json`
+- `report.md`
+- `fix-plan.json`
+- `autofix-result.json`
 
-Deliverables:
+`scan` always means read, analyze, and report. A scan is incomplete if
+`report.md` is missing.
 
-- GitHub-hosted Claude marketplace at `.claude-plugin/marketplace.json`.
-- GitHub-hosted Codex marketplace at `.agents/plugins/marketplace.json`.
-- Bundled scanner inside both plugin packages.
-- `/presecurity init`, `/presecurity scan`, `/presecurity autofix`,
-  `/presecurity cleanup`, and `/presecurity doctor` instructions.
-- `docs/install-from-github.md`.
-- Plugin validation in local verification.
+Git is optional. Without Git, use a sealed local snapshot:
 
-Acceptance:
+- scan id
+- timestamp
+- root path
+- include/exclude policy
+- file hashes
+- artifact directory
 
-- Claude plugin validates.
-- Codex plugin validates.
-- Bundled runner works without installing the scanner as a separate package.
-- README has GitHub installation instructions.
+## Phase 1. Markdown Plugin Foundation
 
-## Phase 2. Popular platform rule engine
-
-Goal: cover high-signal risks across popular FE, BE, and infra stacks.
-
-Initial supported platform families:
-
-- FE: React, Next.js, Vue, Svelte, browser DOM.
-- BE: Node.js, Express, NestJS, Python, Django, FastAPI, Flask, Java, Spring,
-  Go, Ruby on Rails, PHP/Laravel.
-- Infra: Docker, Kubernetes, Terraform, GitHub Actions.
-
-Rule categories:
-
-- OWASP A01 Broken Access Control.
-- OWASP A02 Cryptographic Failures.
-- OWASP A03 Injection.
-- OWASP A05 Security Misconfiguration.
-- OWASP A07 Identification and Authentication Failures.
-- OWASP A08 Software and Data Integrity Failures.
-- OWASP A10 Server-Side Request Forgery.
+1. Keep one Claude command at
+   `plugins/claude/presecurity/commands/presecurity.md`.
+2. Keep one Codex skill at
+   `plugins/codex/presecurity/skills/presecurity/SKILL.md`.
+3. Keep plugin packages free of bundled runtime runners.
+4. Update plugin manifests so the product is described as agent-driven,
+   Markdown-first, and local-first.
+5. Keep marketplace files for GitHub installation.
+6. Document that the host agent performs file reads, artifact writes, and
+   deterministic safe edits directly.
 
 Acceptance:
 
-- Rules map to OWASP category, severity, confidence, platform, impact, and
-  recommendation.
-- Scan output includes an ordered remediation plan.
-- High-risk examples are covered by tests.
+- No tracked language runtime package or plugin `bin/` runtime.
+- Claude and Codex instructions describe the same artifact contract.
+- README explains the current product shape.
 
-## Phase 3. Diff intent analysis
+## Phase 2. Artifact Contract
 
-Goal: scan should explain what changed and what security-sensitive areas appear
-to be affected, even before deep LLM review is added.
-
-Deliverables:
-
-- Git diff parser.
-- Changed file summary.
-- Added/removed line count.
-- Security hints for auth, API routes, database access, outbound HTTP, file
-  system access, shell execution, rendered HTML, CI/CD, and infrastructure.
-- `intent` section in `.presecurity/scan-plan.json`.
+1. Define `.presecurity/scans/scan-YYYYMMDD-HHMMSS/`.
+2. Define `scan-manifest.json` fields:
+   - `schemaVersion`
+   - `scanId`
+   - `tool`
+   - `mode`
+   - `target`
+   - `sourceSnapshot`
+   - `languages`
+   - `artifactPaths`
+   - `limitations`
+3. Define `repository-map.json` fields:
+   - `files`
+   - `frameworks`
+   - `entrypoints`
+   - `trustBoundaryHints`
+   - `sensitiveSinks`
+   - `dependencyFiles`
+   - `configurationFiles`
+4. Define `threat-model.json` fields:
+   - `assets`
+   - `entrypoints`
+   - `untrustedInputs`
+   - `trustBoundaries`
+   - `authAssumptions`
+   - `sensitiveDataPaths`
+   - `priorityReviewAreas`
+5. Define `findings.json` fields:
+   - `id`
+   - `title`
+   - `category`
+   - `severity`
+   - `confidence`
+   - `reachability`
+   - `exploitability`
+   - `businessImpact`
+   - `files`
+   - `attackPath`
+   - `evidence`
+   - `counterEvidence`
+   - `proofGap`
+   - `recommendation`
+   - `autofix`
+6. Define `coverage.json` fields:
+   - `reviewedFiles`
+   - `skippedFiles`
+   - `deferredSurfaces`
+   - `limitations`
+   - `proofGaps`
+7. Define `fix-plan.json` fields:
+   - `mode`
+   - `items`
+   - `safeCount`
+   - `reviewRequiredCount`
+   - `blockedCount`
+8. Define `autofix-result.json` fields:
+   - `applied`
+   - `skipped`
+   - `rescanSummary`
+   - `remainingFindings`
 
 Acceptance:
 
-- `scan` includes an intent summary when git diff is available.
-- Tests cover diff parsing and hint classification.
+- A scan can be reviewed from artifacts alone.
+- Every scan writes `report.md` automatically.
+- Every finding has evidence, counterevidence, and proof gap fields.
+- Every unsafe or ambiguous remediation is marked `review-required` or
+  `blocked`.
 
-## Test plan
+## Phase 3. General Codebase Coverage
 
-### Unit tests
+1. Add analysis guidance for Web:
+   - JavaScript
+   - TypeScript
+   - React
+   - Next.js
+   - Vue
+   - Svelte
+2. Add analysis guidance for Backend:
+   - Node.js
+   - Python
+   - Java
+   - Kotlin
+   - Go
+   - Ruby
+   - PHP
+3. Add analysis guidance for Mobile:
+   - Java
+   - Kotlin
+   - Swift
+   - Objective-C
+   - Dart
+   - plist
+4. Add analysis guidance for Native:
+   - C
+   - C++
+5. Add analysis guidance for Config and supply chain:
+   - JSON
+   - YAML
+   - XML
+   - Dockerfile
+   - Terraform
+   - Gradle
+   - Maven
+   - GitHub Actions
+   - CI configuration
 
-- Rule matching for Python, JavaScript/TypeScript, Java, Go, Ruby, PHP, YAML,
-  HCL, and Dockerfile examples.
-- Intent parser for git unified diffs.
-- Autofix transforms.
-- State file creation.
+Acceptance:
 
-### CLI tests
+- The command/skill tells the agent what to inspect for each platform family.
+- Python and shell are not required as implementation languages.
 
-- `init` creates `.presecurity/config.json`, `history.jsonl`, and
-  `scan-plan.json`.
-- `scan` writes findings and intent to `scan-plan.json`.
-- `autofix` applies safe fixes and rescans.
-- `cleanup` removes `.presecurity`.
+## Phase 4. Threat Taxonomy
 
-### Plugin tests
+Implement review guidance for:
 
-- Claude bundled runner executes `init` and `scan`.
-- Codex bundled runner executes `init` and `scan`.
-- Claude plugin manifest validates.
-- Codex plugin manifest validates.
+1. Injection
+2. Broken Authentication
+3. Broken Authorization
+4. SSRF / Unsafe Network
+5. Secret Exposure
+6. Insecure Storage
+7. Crypto Misuse
+8. Deserialization
+9. Path / File Access
+10. XSS / HTML Injection
+11. WebView / Client Bridge
+12. Deep Link / Intent
+13. Insecure Config
+14. Supply Chain
+15. CI/CD / Build Script
+16. Business Logic
+17. Multi-Tenant Isolation
+18. Logging / Error Leak
+19. Race / TOCTOU
+20. Resource Abuse
+21. Native / Memory Safety
+22. AI Agent / Tool Risk
 
-### Regression tests
+Acceptance:
 
-- Every new safe autofix gets a before/after test.
-- Every high-risk rule gets at least one vulnerable fixture test.
-- Any intentional vulnerable test fixture must use `presecurity: ignore` when
-  it appears in scanner source or test source.
+- Findings map to exactly one primary threat category.
+- Secondary categories may be added only when they clarify remediation.
+
+## Phase 5. Safe Autofix
+
+1. Classify every finding as `safe`, `review-required`, or `blocked`.
+2. Apply only `safe` fixes.
+3. Keep edits minimal and deterministic.
+4. Write `autofix-result.json`.
+5. Rescan the changed files or the whole target.
+6. Update `report.md` with before/after status.
+
+Acceptance:
+
+- No policy-dependent fix is applied without human review.
+- Every applied fix names exact files and changed intent.
+- Remaining findings are reported after rescan.
+
+## Phase 6. Verification
+
+1. Run `git status --short` when Git exists, only to show changed files.
+2. Validate JSON artifacts with the host's available JSON parser.
+3. Re-open `report.md` and verify required sections exist.
+4. For autofix, inspect the working tree diff if Git exists.
+5. If no Git exists, list changed files from `autofix-result.json`.
+
+Acceptance:
+
+- Final response includes artifact directory.
+- Final response includes applied fixes and remaining risks.
+- Final response includes validation gaps.
+
+## Phase 7. Fixture Corpus
+
+1. Maintain intentionally vulnerable examples under `examples/`.
+2. Keep one small fixture per supported language or framework family.
+3. Document the expected primary threat category in `examples/README.md`.
+4. Use examples for plugin development scans:
+   - `examples`
+   - `examples/web`
+   - `examples/backend`
+   - `examples/mobile`
+   - `examples/native`
+   - `examples/config`
+5. Do not add shell-based exploit runners.
+6. Do not require dependencies to install or apps to boot.
+7. Prefer short source files whose vulnerable intent is obvious to a reviewer.
+
+Acceptance:
+
+- CI verifies all required fixture paths exist.
+- The fixture matrix covers Web, Backend, Mobile, Native, and Config.
+- Each fixture maps to one primary presecurity threat category.
