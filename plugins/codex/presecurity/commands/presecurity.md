@@ -94,10 +94,22 @@ When the scan completes, show only a compact result summary:
 - safe autofix candidates count
 - review-required count
 - blocked count
+- recommended autofix command
 - proof gaps and limitations
 
 Keep detailed evidence, attack paths, and remediation notes in `report.md` and
 the JSON artifacts instead of printing them to the chat.
+
+Recommend the highest needed autofix mode from the latest scan counts:
+
+- if any `blocked` items exist, recommend `/presecurity autofix blocked`
+- else if any `review-required` items exist, recommend
+  `/presecurity autofix review-required`
+- else if any `safe` items exist, recommend `/presecurity autofix safe`
+- else state that no autofix is recommended
+
+This is only a recommendation after `/presecurity scan`; do not start autofix
+automatically.
 
 When the user invokes `/presecurity autofix` or `/presecurity autofix safe`,
 run:
@@ -350,6 +362,10 @@ Autofix modes:
   `review-required` fixes.
 - `/presecurity autofix blocked`: process `safe` fixes first, then
   `review-required` fixes, then `blocked` fixes.
+
+After a scan, suggest the highest mode required by the artifact counts:
+`blocked` wins over `review-required`, and `review-required` wins over `safe`.
+The suggestion must be printed as a command only, not executed.
 
 Processing rules:
 

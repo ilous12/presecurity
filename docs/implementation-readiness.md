@@ -78,6 +78,8 @@ Screen output:
   artifact file paths, or per-file completion messages
 - write artifacts silently
 - after completion, print only a compact result summary
+- after completion, recommend the highest needed autofix command from the
+  latest safe/review-required/blocked counts
 - keep detailed evidence, attack paths, proof gaps, and remediation guidance in
   `report.md` and JSON artifacts
 
@@ -90,6 +92,10 @@ Autofix:
   `review-required`
 - `/presecurity autofix blocked` processes `safe`, then `review-required`,
   then `blocked`
+- scan summaries recommend `/presecurity autofix blocked` if any blocked
+  items exist, else `/presecurity autofix review-required` if any
+  review-required items exist, else `/presecurity autofix safe` if only safe
+  items exist
 - apply fixes sequentially and run an impact check after every individual fix
 - stop on failed impact checks, destructive changes, broad unrelated diffs, or
   unresolved ambiguity
@@ -147,6 +153,7 @@ Every final agent response after running presecurity should include:
 - total material findings by severity
 - measured risk distribution
 - top remediation priorities
+- recommended autofix command
 - applied fixes by tier
 - review-required items
 - blocked items

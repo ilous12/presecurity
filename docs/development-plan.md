@@ -245,17 +245,26 @@ Acceptance:
    `review-required` fixes.
 4. `/presecurity autofix blocked` applies `safe` fixes first, then
    `review-required` fixes, then `blocked` fixes.
-5. Keep edits minimal and deterministic.
-6. Apply root-cause fixes only; do not apply partial mitigations.
-7. Apply one fix at a time, check impact, then continue iterating.
-8. Write `autofix-result.json`.
-9. Rescan the changed files or the whole target.
-10. Update `report.md` with before/after status.
+5. After each scan, recommend the highest needed autofix command from artifact
+   counts:
+   - any `blocked` -> `/presecurity autofix blocked`
+   - else any `review-required` -> `/presecurity autofix review-required`
+   - else any `safe` -> `/presecurity autofix safe`
+   - else no autofix recommended
+6. Do not execute the recommended command automatically after scan.
+7. Keep edits minimal and deterministic.
+8. Apply root-cause fixes only; do not apply partial mitigations.
+9. Apply one fix at a time, check impact, then continue iterating.
+10. Write `autofix-result.json`.
+11. Rescan the changed files or the whole target.
+12. Update `report.md` with before/after status.
 
 Acceptance:
 
 - Policy-dependent or blocked fixes are applied only when the user invokes the
   matching explicit autofix mode.
+- Scan output recommends the highest needed autofix mode but does not run it
+  automatically.
 - Every applied fix names exact files and changed intent.
 - No applied fix is reported as `partially mitigated`; unresolved policy gaps
   stay unresolved.

@@ -131,8 +131,8 @@ During a scan, the screen should show progress only. It should not show
 paths, or remediation notes while artifacts are being written. Those details
 belong in `report.md` and JSON artifacts. After the scan completes, the agent
 should print only a compact summary: artifact directory, severity totals, top
-findings, safe autofix count, review-required count, blocked count, and
-limitations.
+findings, safe autofix count, review-required count, blocked count, recommended
+autofix command, and limitations.
 
 `/presecurity autofix` behavior:
 
@@ -284,6 +284,19 @@ Autofix modes:
 | `/presecurity autofix safe` | `safe` |
 | `/presecurity autofix review-required` | `safe` -> `review-required` |
 | `/presecurity autofix blocked` | `safe` -> `review-required` -> `blocked` |
+
+After every scan, recommend the highest needed autofix mode from the latest
+artifact counts:
+
+| Latest scan state | Recommended command |
+| --- | --- |
+| Any `blocked` items exist | `/presecurity autofix blocked` |
+| No `blocked`, any `review-required` items exist | `/presecurity autofix review-required` |
+| Only `safe` items exist | `/presecurity autofix safe` |
+| No fixable items exist | No autofix recommended |
+
+The recommendation is advisory. It must not apply fixes automatically after
+`/presecurity scan`.
 
 Every mode applies fixes sequentially. After each individual fix, presecurity
 checks impact, rescans changed files when possible, updates the finding status,
