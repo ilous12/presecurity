@@ -38,9 +38,12 @@ snapshot. Do not require commit hashes, branches, pull requests, or history.
 
 During scan execution, show only short progress updates on screen. Do not
 stream detailed analysis, raw findings, file-by-file notes, chain-of-thought,
-or patch suggestions while the scan is running.
+patch suggestions, or file write logs while the scan is running.
 
-Use concise progress lines such as:
+Suppress operational logs such as `Wrote ...`, `Created ...`, `Updated ...`,
+artifact file paths, and per-file completion messages. Write artifacts silently.
+
+Use only concise progress lines like these:
 
 ```text
 presecurity: reading files...

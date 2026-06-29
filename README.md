@@ -82,11 +82,13 @@ read -> analyze -> report
 A scan is not complete until `report.md` and the structured JSON artifacts are
 written.
 
-During a scan, the screen should show progress only. Detailed findings,
-evidence, attack paths, and remediation notes belong in `report.md` and JSON
-artifacts. After the scan completes, the agent should print only a compact
-summary: artifact directory, severity totals, top findings, safe autofix count,
-review-required count, blocked count, and limitations.
+During a scan, the screen should show progress only. It should not show
+`Wrote ...`, `Created ...`, file paths, detailed findings, evidence, attack
+paths, or remediation notes while artifacts are being written. Those details
+belong in `report.md` and JSON artifacts. After the scan completes, the agent
+should print only a compact summary: artifact directory, severity totals, top
+findings, safe autofix count, review-required count, blocked count, and
+limitations.
 
 `/presecurity autofix` behavior:
 

@@ -61,6 +61,9 @@ Screen output:
 - while scanning, show only concise progress status
 - do not print detailed findings, file-by-file notes, or patch suggestions
   before the report is complete
+- do not print operational write logs such as `Wrote ...`, `Created ...`,
+  artifact file paths, or per-file completion messages
+- write artifacts silently
 - after completion, print only a compact result summary
 - keep detailed evidence, attack paths, proof gaps, and remediation guidance in
   `report.md` and JSON artifacts
