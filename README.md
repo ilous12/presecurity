@@ -94,6 +94,37 @@ review-required count, blocked count, and limitations.
 read latest artifacts -> apply safe-only fixes -> rescan -> update report
 ```
 
+## Installation
+
+Repository:
+
+```text
+https://github.com/ilous12/presecurity
+```
+
+Claude Code:
+
+```text
+/plugin marketplace add https://github.com/ilous12/presecurity
+/plugin install presecurity@presecurity-marketplace
+```
+
+Codex CLI:
+
+```text
+codex plugin marketplace add ilous12/presecurity --ref main --sparse .agents/plugins --sparse plugins/codex/presecurity
+codex plugin add presecurity@presecurity
+```
+
+Codex Desktop:
+
+1. Open Codex settings.
+2. Open Plugins.
+3. Add marketplace source `ilous12/presecurity`.
+4. Install `presecurity`.
+5. Start a new thread.
+6. Run `/presecurity scan`.
+
 ## Artifacts
 
 Every completed scan writes a self-contained artifact bundle:
@@ -194,7 +225,6 @@ Review-required examples:
 - [Implementation readiness](docs/implementation-readiness.md)
 - [Development TODO](docs/development-plan.md)
 - [Supported platforms](docs/supported-platforms.md)
-- [Install from GitHub](docs/install-from-github.md)
 - [Example vulnerable fixtures](examples/README.md)
 
 ## Plugin Development Tests
