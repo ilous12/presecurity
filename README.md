@@ -29,6 +29,22 @@ Claude Code:
 /plugin install presecurity@presecurity-marketplace
 ```
 
+Claude Desktop:
+
+1. Open Claude Desktop.
+2. Open the Customize menu in the left sidebar.
+3. Open the Plugins tab.
+4. In Personal plugins, click `+` and choose Add marketplace.
+5. Choose Add from a repository.
+6. Enter `https://github.com/ilous12/presecurity`.
+7. Install `presecurity`.
+8. Start a new chat or Cowork task.
+9. Run `/presecurity scan`.
+
+Claude Desktop can also install a custom plugin file if you package and share
+one separately. For repository-based installation, use the marketplace flow
+above so updates can be synced from GitHub.
+
 Codex CLI:
 
 ```text
