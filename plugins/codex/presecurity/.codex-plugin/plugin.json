@@ -29,8 +29,8 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Use $presecurity to review this repository.",
-      "Use $presecurity to apply safe autofixes from the latest report."
+      "/presecurity scan",
+      "/presecurity autofix"
     ],
     "brandColor": "#1F7A5C",
     "composerIcon": "./assets/icon.png",

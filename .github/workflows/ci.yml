@@ -16,6 +16,7 @@ jobs:
           test -f docs/development-plan.md
           test -f docs/supported-platforms.md
           test -f plugins/claude/presecurity/commands/presecurity.md
+          test -f plugins/codex/presecurity/commands/presecurity.md
           test -f plugins/codex/presecurity/skills/presecurity/SKILL.md
           test -f plugins/claude/presecurity/.claude-plugin/plugin.json
           test -f plugins/codex/presecurity/.codex-plugin/plugin.json

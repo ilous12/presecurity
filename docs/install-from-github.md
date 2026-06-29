@@ -57,7 +57,10 @@ Desktop flow:
 3. Add marketplace source `ilous12/presecurity`.
 4. Install `presecurity`.
 5. Start a new thread.
-6. Ask Codex to use `$presecurity`.
+6. Run `/presecurity scan`.
+
+Codex also exposes the `$presecurity` skill for natural-language requests such
+as `Use $presecurity to scan this repository`.
 
 ## Runtime Model
 

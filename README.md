@@ -57,9 +57,15 @@ Claude Code:
 Codex:
 
 ```text
-Use $presecurity to run a security review on this repository.
-Use $presecurity to apply safe autofixes from the latest presecurity report.
+/presecurity
+/presecurity scan
+/presecurity autofix
+/presecurity doctor
+/presecurity cleanup
 ```
+
+The `$presecurity` skill is also available for natural-language invocation in
+Codex.
 
 Default `/presecurity` behavior:
 
