@@ -235,6 +235,13 @@ checks impact, rescans changed files when possible, updates the finding status,
 and then continues. If an impact check fails or the diff becomes broad,
 destructive, or ambiguous, the mode stops and reports the remaining items.
 
+Autofix must address the root cause. It must not apply partial mitigations and
+call them fixed. For example, SSRF fixes should use a positive allowlist of
+approved destinations or a centrally enforced outbound policy; private-IP or
+metadata-host blocklists are defense-in-depth only and must not replace the
+allowlist. If the required business/security policy is unknown, presecurity
+leaves the finding unresolved and reports the missing policy input.
+
 Safe examples:
 
 - `yaml.load(...)` -> `yaml.safe_load(...)` when imports and call shape are
@@ -250,7 +257,7 @@ Review-required examples:
 
 - Replacing an authz model.
 - Changing payment, tenant, or workflow state transitions.
-- Adding URL allowlists.
+- Designing the approved URL allowlist or outbound gateway policy.
 - Tightening Android cleartext or iOS ATS exceptions.
 - Replacing crypto used for compatibility with stored data.
 

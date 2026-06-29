@@ -93,6 +93,13 @@ Autofix:
 - apply fixes sequentially and run an impact check after every individual fix
 - stop on failed impact checks, destructive changes, broad unrelated diffs, or
   unresolved ambiguity
+- apply root-cause fixes only; do not apply partial mitigations or report
+  `partially mitigated` as a completed fix
+- for SSRF, prefer a positive allowlist or centrally enforced outbound policy;
+  blocklists for private IPs, metadata hosts, loopback, link-local ranges, or
+  non-standard IP forms are defense-in-depth only
+- if the required policy is unknown, leave the finding unresolved and report
+  the missing policy decision instead of editing code
 
 Rescan:
 

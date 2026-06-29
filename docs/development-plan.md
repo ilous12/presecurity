@@ -210,16 +210,21 @@ Acceptance:
 4. `/presecurity autofix blocked` applies `safe` fixes first, then
    `review-required` fixes, then `blocked` fixes.
 5. Keep edits minimal and deterministic.
-6. Apply one fix at a time, check impact, then continue iterating.
-7. Write `autofix-result.json`.
-8. Rescan the changed files or the whole target.
-9. Update `report.md` with before/after status.
+6. Apply root-cause fixes only; do not apply partial mitigations.
+7. Apply one fix at a time, check impact, then continue iterating.
+8. Write `autofix-result.json`.
+9. Rescan the changed files or the whole target.
+10. Update `report.md` with before/after status.
 
 Acceptance:
 
 - Policy-dependent or blocked fixes are applied only when the user invokes the
   matching explicit autofix mode.
 - Every applied fix names exact files and changed intent.
+- No applied fix is reported as `partially mitigated`; unresolved policy gaps
+  stay unresolved.
+- SSRF fixes use allowlists or central outbound policy, not blocklist-only
+  hardening.
 - Remaining findings are reported after rescan.
 
 ## Phase 6. Verification

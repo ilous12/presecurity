@@ -326,16 +326,38 @@ Processing rules:
 1. Process one risk tier at a time in this order: `safe`,
    `review-required`, `blocked`.
 2. Within each tier, apply one fix at a time.
-3. After each fix, run the smallest meaningful impact check: inspect the diff,
+3. Apply root-cause fixes only. Do not apply partial mitigations, temporary
+   hardening, or "best effort" patches that leave the original attack class
+   materially reachable.
+4. After each fix, run the smallest meaningful impact check: inspect the diff,
    rescan changed files when possible, and update the finding status.
-4. Continue iterating within the current tier until no eligible finding remains
+5. Continue iterating within the current tier until no eligible finding remains
    or an impact check fails.
-5. Move to the next tier only when the current tier is clean.
-6. Stop immediately on behavior ambiguity, failed impact checks, broad
+6. Move to the next tier only when the current tier is clean.
+7. Stop immediately on behavior ambiguity, failed impact checks, broad
    unrelated diffs, or destructive/irreversible changes.
 
 Default behavior is safe-only. Never apply `review-required` or `blocked`
 findings unless the user explicitly invoked the matching autofix mode.
+
+Root-cause requirements:
+
+- A finding is fixed only when the vulnerable data flow or missing policy is
+  removed at its source or enforced at the correct trust boundary.
+- Do not report `partially mitigated` as an applied fix. If only partial
+  mitigation is possible, leave the finding unresolved and report the required
+  policy input.
+- Do not replace allowlist requirements with blocklists. Blocklists for private
+  IPs, metadata hosts, loopback, link-local ranges, non-standard IP notation,
+  or IPv6 variants are defense-in-depth only and do not close SSRF by
+  themselves.
+- For SSRF, the preferred review-required fix is a positive allowlist of
+  approved destinations, protocols, and ports, or a centrally enforced outbound
+  gateway policy. If allowed destinations are unknown, do not edit application
+  code; update the report with the missing policy decision.
+- For authorization, tenant isolation, payment, workflow, and state-transition
+  issues, patch the source-of-truth policy check. Do not add local route-only
+  guards when shared services or downstream entrypoints can still bypass them.
 
 Safe examples:
 
@@ -350,7 +372,7 @@ Review-required examples:
 
 - authz model changes
 - payment or tenant logic changes
-- URL allowlist design
+- approved URL allowlist or outbound gateway policy design
 - Android cleartext or iOS ATS policy tightening
 - crypto migration that affects stored data compatibility
 
