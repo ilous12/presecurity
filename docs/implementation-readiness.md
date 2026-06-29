@@ -59,6 +59,9 @@ Analyze:
 - build a lightweight threat model
 - identify realistic attack paths
 - record evidence, counterevidence, and proof gaps
+- run adversarial validation before surfacing material findings
+- defer weak, speculative, or insufficiently proven candidates instead of
+  promoting them into `findings.json`
 - classify severity, confidence, reachability, exploitability, and business
   impact
 
@@ -79,6 +82,9 @@ Screen output:
   artifact file paths, or per-file completion messages
 - write artifacts silently
 - after completion, print only a compact result summary
+- final command output includes artifact path, severity counts, validation
+  counts, autofix tier counts, recommended command, and a short top-findings
+  table
 - after completion, recommend the highest needed autofix command from the
   latest safe/review-required/blocked counts
 - keep detailed evidence, attack paths, proof gaps, and remediation guidance in
@@ -145,9 +151,9 @@ A working plugin run is complete when:
 
 Findings are complete only when they include measured threat score,
 likelihood, impact, reachability, exploitability, confidence, evidence,
-counterevidence, validation status, and proof gap. Low/info/speculative
-signals should be deferred rather than promoted into findings unless they
-materially change real-world risk.
+counterevidence, false-positive checks, validation status, and proof gap.
+Low/info/speculative signals should be deferred rather than promoted into
+findings unless they materially change real-world risk.
 
 ## Completion Evidence
 
@@ -156,6 +162,7 @@ Every final agent response after running presecurity should include:
 - artifact directory path
 - total material findings by severity
 - measured risk distribution
+- validation summary: confirmed, deferred, blocked
 - top remediation priorities
 - recommended autofix command
 - applied fixes by tier

@@ -62,6 +62,7 @@ Use only concise progress lines like these:
 ```text
 presecurity: reading files...
 presecurity: analyzing trust boundaries...
+presecurity: validating findings...
 presecurity: writing report...
 ```
 
@@ -78,12 +79,28 @@ When the scan completes, show only a compact result summary:
 
 - artifact directory
 - total findings by severity
+- validation summary: confirmed, deferred, blocked
 - top findings by title and severity
 - safe autofix candidates count
 - review-required count
 - blocked count
 - recommended autofix command
 - proof gaps and limitations
+
+Use this final display shape:
+
+```text
+Artifact: .presecurity/scans/<scan-id>/
+Risk: critical N / high N / medium N
+Validation: confirmed N / deferred N / blocked N
+Autofix: safe N / review-required N / blocked N
+Recommended: /presecurity autofix <safe|review-required|blocked>
+
+Top findings:
+| ID | Severity | Validation | Title | Autofix |
+| --- | --- | --- | --- | --- |
+| F-001 | high | confirmed | <short title> | review-required |
+```
 
 Keep detailed evidence, attack paths, and remediation notes in `report.md` and
 the JSON artifacts instead of printing them to the chat.
@@ -227,6 +244,10 @@ Threat model priorities must focus analysis on attacker-controlled entry
 points, crossed trust/auth/tenant boundaries, sensitive sinks, and high-impact
 business flows.
 
+Analyze candidates in parallel shards when the target has multiple languages,
+frameworks, directories, or trust-boundary areas. Merge shard results before
+reporting so duplicated or weak candidates can be collapsed or deferred.
+
 Create `findings.json`. Each finding must include:
 
 - id
@@ -244,6 +265,8 @@ Create `findings.json`. Each finding must include:
 - attack path
 - evidence
 - counterevidence
+- false-positive checks
+- validation status
 - proof gap
 - recommendation
 - autofix classification
@@ -259,12 +282,21 @@ All factors are normalized from `0.0` to `1.0`. Include only `critical`,
 low, info, speculative, or missing-context observations into
 `coverage.json.deferredSignals` unless they materially change real-world risk.
 
+Before surfacing a finding, run an adversarial validation pass:
+
+1. Argue why the candidate may be false.
+2. Check legitimate behavior, framework conventions, and compensating controls.
+3. Check whether the source-to-sink path is actually attacker reachable.
+4. Check whether the claimed boundary is already enforced elsewhere.
+5. Defer the candidate unless the remaining evidence supports material risk.
+
 For every material finding, create `validation/<finding-id>.json` with:
 
 - validation status
 - reproduction or strongest feasible exploit check
 - legitimate-behavior checks
 - nearby bypass checks
+- false-positive checks
 - evidence
 - counterevidence
 - remaining proof gap
@@ -327,7 +359,7 @@ Create `report.md` with:
 5. Measured risk distribution
 6. Top remediation priorities
 7. Findings by severity
-8. Finding details with validation status
+8. Finding details with validation status and false-positive checks
 9. Safe autofix candidates
 10. Review-required remediations
 11. Blocked or deferred areas

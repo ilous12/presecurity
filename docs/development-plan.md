@@ -112,6 +112,8 @@ Acceptance:
    - `attackPath`
    - `evidence`
    - `counterEvidence`
+   - `falsePositiveChecks`
+   - `validationStatus`
    - `proofGap`
    - `recommendation`
    - `autofix`
@@ -120,6 +122,7 @@ Acceptance:
    - `reproductionOrStrongestExploitCheck`
    - `legitimateBehaviorChecks`
    - `nearbyBypassChecks`
+   - `falsePositiveChecks`
    - `evidence`
    - `counterEvidence`
    - `remainingProofGap`
@@ -154,10 +157,13 @@ Acceptance:
 - A scan can be reviewed from artifacts alone.
 - Every scan writes `report.md` automatically.
 - Every material finding has measured threat score, evidence,
-  counterevidence, validation status, and proof gap fields.
+  counterevidence, false-positive checks, validation status, and proof gap
+  fields.
 - `findings.json` defaults to critical/high/meaningful medium findings.
 - Low/info/speculative observations are deferred into coverage/report
   limitations unless they materially change risk.
+- Every material finding passes an adversarial validation step before it is
+  surfaced in `findings.json`.
 - Every unsafe or ambiguous remediation is marked `review-required` or
   `blocked`.
 
