@@ -11,6 +11,19 @@ artifacts, and apply tiered fixes with safe-only behavior by default.
 
 ## Default Behavior
 
+## Display Language
+
+Before showing command menus, progress, summaries, doctor output, cleanup
+output, or autofix results, detect the host/user language setting and respond in
+that language:
+
+- English setting: display user-facing text in English.
+- Korean setting: display user-facing text in Korean.
+
+If the host language setting is unavailable, infer the language from the user's
+current request. Keep artifact schemas, JSON keys, file names, command names,
+finding IDs, and code identifiers unchanged.
+
 When the user invokes `/presecurity` with no arguments, show only this command
 menu and stop:
 
@@ -50,6 +63,15 @@ Use only concise progress lines like these:
 presecurity: reading files...
 presecurity: analyzing trust boundaries...
 presecurity: writing report...
+```
+
+For Korean display settings, localize the status text while keeping the
+`presecurity:` prefix:
+
+```text
+presecurity: 파일 읽는 중...
+presecurity: 신뢰 경계 분석 중...
+presecurity: 리포트 작성 중...
 ```
 
 When the scan completes, show only a compact result summary:

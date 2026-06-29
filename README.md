@@ -56,6 +56,12 @@ The project minimizes Python and shell. The implementation contract lives in
 Markdown so agent hosts can execute the workflow directly from the command or
 skill instructions.
 
+User-facing plugin output follows the current host/user language setting:
+English settings show English command help, progress, and summaries; Korean
+settings show Korean command help, progress, and summaries. Artifact schemas,
+JSON keys, file names, command names, finding IDs, and code identifiers stay
+stable.
+
 ## Supported Inputs
 
 presecurity must support general-purpose codebases. Initial analysis coverage

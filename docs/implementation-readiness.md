@@ -25,6 +25,17 @@ presecurity is a Markdown-first plugin. The core implementation lives in:
 
 The host agent reads those Markdown instructions and performs the workflow.
 
+## Display Language
+
+User-facing plugin output must follow the current host/user language setting.
+English settings show English command menus, progress, summaries, doctor
+output, cleanup output, and autofix results. Korean settings show the same
+surfaces in Korean.
+
+If the host language setting is unavailable, infer the language from the user's
+current request. Artifact schemas, JSON keys, file names, command names,
+finding IDs, and code identifiers remain stable.
+
 ## Workflow Contract
 
 `/presecurity` without arguments is command-list only and must not scan.
