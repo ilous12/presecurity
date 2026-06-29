@@ -13,10 +13,13 @@ read -> analyze -> report -> autofix -> rescan
 presecurity borrows Codex Security's public artifact model:
 
 - `scan-manifest.json`
+- `scan-summary.json`
 - `repository-map.json`
 - `threat-model.json`
 - `findings.json`
 - `coverage.json`
+- `validation/<finding-id>.json`
+- `patches/<finding-id>.patch.md`
 - `report.md`
 - `fix-plan.json`
 - `autofix-result.json`
@@ -67,7 +70,16 @@ Acceptance:
    - `languages`
    - `artifactPaths`
    - `limitations`
-3. Define `repository-map.json` fields:
+3. Define `scan-summary.json` fields:
+   - `status`
+   - `coverageTotals`
+   - `severityTotals`
+   - `measuredRiskDistribution`
+   - `topMaterialRisks`
+   - `remediationPriorityQueue`
+   - `deferredLowSignalCandidates`
+   - `artifactIndex`
+4. Define `repository-map.json` fields:
    - `files`
    - `frameworks`
    - `entrypoints`
@@ -75,7 +87,7 @@ Acceptance:
    - `sensitiveSinks`
    - `dependencyFiles`
    - `configurationFiles`
-4. Define `threat-model.json` fields:
+5. Define `threat-model.json` fields:
    - `assets`
    - `entrypoints`
    - `untrustedInputs`
@@ -83,10 +95,14 @@ Acceptance:
    - `authAssumptions`
    - `sensitiveDataPaths`
    - `priorityReviewAreas`
-5. Define `findings.json` fields:
+   - `scopedOutAreas`
+6. Define `findings.json` fields:
    - `id`
    - `title`
    - `category`
+   - `threatScore`
+   - `likelihood`
+   - `impact`
    - `severity`
    - `confidence`
    - `reachability`
@@ -99,19 +115,35 @@ Acceptance:
    - `proofGap`
    - `recommendation`
    - `autofix`
-6. Define `coverage.json` fields:
+7. Define `validation/<finding-id>.json` fields:
+   - `validationStatus`
+   - `reproductionOrStrongestExploitCheck`
+   - `legitimateBehaviorChecks`
+   - `nearbyBypassChecks`
+   - `evidence`
+   - `counterEvidence`
+   - `remainingProofGap`
+   - `reviewerDecisionNeeded`
+8. Define `patches/<finding-id>.patch.md` sections:
+   - root-cause remediation approach
+   - expected diff summary
+   - regression or verification plan
+   - residual risk
+   - rollback notes
+9. Define `coverage.json` fields:
    - `reviewedFiles`
    - `skippedFiles`
    - `deferredSurfaces`
+   - `deferredSignals`
    - `limitations`
    - `proofGaps`
-7. Define `fix-plan.json` fields:
+10. Define `fix-plan.json` fields:
    - `mode`
    - `items`
    - `safeCount`
    - `reviewRequiredCount`
    - `blockedCount`
-8. Define `autofix-result.json` fields:
+11. Define `autofix-result.json` fields:
    - `applied`
    - `skipped`
    - `rescanSummary`
@@ -121,7 +153,11 @@ Acceptance:
 
 - A scan can be reviewed from artifacts alone.
 - Every scan writes `report.md` automatically.
-- Every finding has evidence, counterevidence, and proof gap fields.
+- Every material finding has measured threat score, evidence,
+  counterevidence, validation status, and proof gap fields.
+- `findings.json` defaults to critical/high/meaningful medium findings.
+- Low/info/speculative observations are deferred into coverage/report
+  limitations unless they materially change risk.
 - Every unsafe or ambiguous remediation is marked `review-required` or
   `blocked`.
 

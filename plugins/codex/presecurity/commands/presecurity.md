@@ -152,10 +152,15 @@ Create:
 ```text
 .presecurity/scans/scan-YYYYMMDD-HHMMSS/
   scan-manifest.json
+  scan-summary.json
   repository-map.json
   threat-model.json
   findings.json
   coverage.json
+  validation/
+    F-001.json
+  patches/
+    F-001.patch.md
   report.md
 ```
 
@@ -168,7 +173,9 @@ autofix-result.json
 
 ## Read
 
-Create `scan-manifest.json` with:
+Create `scan-manifest.json` and `scan-summary.json`.
+
+`scan-manifest.json` must include:
 
 - schema version
 - scan id
@@ -179,6 +186,17 @@ Create `scan-manifest.json` with:
 - detected languages
 - artifact paths
 - limitations
+
+`scan-summary.json` must include:
+
+- scan status
+- coverage totals
+- severity totals
+- measured risk distribution
+- top material risks
+- remediation priority queue
+- deferred low-signal candidates
+- artifact index
 
 Create `repository-map.json` with:
 
@@ -203,12 +221,20 @@ Create `threat-model.json` with:
 - auth assumptions
 - sensitive data paths
 - priority review areas
+- scoped-out areas
+
+Threat model priorities must focus analysis on attacker-controlled entry
+points, crossed trust/auth/tenant boundaries, sensitive sinks, and high-impact
+business flows.
 
 Create `findings.json`. Each finding must include:
 
 - id
 - title
 - category
+- threat score
+- likelihood
+- impact
 - severity
 - confidence
 - reachability
@@ -221,6 +247,37 @@ Create `findings.json`. Each finding must include:
 - proof gap
 - recommendation
 - autofix classification
+
+Use this scoring model:
+
+```text
+threatScore = likelihood x impact x reachability x exploitability x confidence
+```
+
+All factors are normalized from `0.0` to `1.0`. Include only `critical`,
+`high`, and meaningful `medium` findings in `findings.json` by default. Move
+low, info, speculative, or missing-context observations into
+`coverage.json.deferredSignals` unless they materially change real-world risk.
+
+For every material finding, create `validation/<finding-id>.json` with:
+
+- validation status
+- reproduction or strongest feasible exploit check
+- legitimate-behavior checks
+- nearby bypass checks
+- evidence
+- counterevidence
+- remaining proof gap
+- reviewer decision needed
+
+For every accepted or fixable finding, create `patches/<finding-id>.patch.md`
+with:
+
+- root-cause remediation approach
+- expected diff summary
+- regression or verification plan
+- residual risk
+- rollback notes
 
 ## Threat Categories
 
@@ -267,11 +324,13 @@ Create `report.md` with:
 2. Target and snapshot
 3. Coverage and limitations
 4. Threat model summary
-5. Findings by severity
-6. Finding details
-7. Safe autofix candidates
-8. Review-required remediations
-9. Blocked or deferred areas
+5. Measured risk distribution
+6. Top remediation priorities
+7. Findings by severity
+8. Finding details with validation status
+9. Safe autofix candidates
+10. Review-required remediations
+11. Blocked or deferred areas
 
 This report step is mandatory for `/presecurity scan`.
 

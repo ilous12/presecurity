@@ -122,20 +122,31 @@ belongs to that scan.
 A working plugin run is complete when:
 
 1. `.presecurity/scans/<scan-id>/scan-manifest.json` exists.
-2. `.presecurity/scans/<scan-id>/repository-map.json` exists.
-3. `.presecurity/scans/<scan-id>/threat-model.json` exists.
-4. `.presecurity/scans/<scan-id>/findings.json` exists.
-5. `.presecurity/scans/<scan-id>/coverage.json` exists.
-6. `.presecurity/scans/<scan-id>/report.md` exists.
-7. `/presecurity autofix` can create `fix-plan.json` and
+2. `.presecurity/scans/<scan-id>/scan-summary.json` exists.
+3. `.presecurity/scans/<scan-id>/repository-map.json` exists.
+4. `.presecurity/scans/<scan-id>/threat-model.json` exists.
+5. `.presecurity/scans/<scan-id>/findings.json` exists.
+6. `.presecurity/scans/<scan-id>/coverage.json` exists.
+7. `.presecurity/scans/<scan-id>/report.md` exists.
+8. Material findings have matching `validation/<finding-id>.json`.
+9. Accepted or fixable findings have matching `patches/<finding-id>.patch.md`.
+10. `/presecurity autofix` can create `fix-plan.json` and
    `autofix-result.json` without applying unsafe changes.
+
+Findings are complete only when they include measured threat score,
+likelihood, impact, reachability, exploitability, confidence, evidence,
+counterevidence, validation status, and proof gap. Low/info/speculative
+signals should be deferred rather than promoted into findings unless they
+materially change real-world risk.
 
 ## Completion Evidence
 
 Every final agent response after running presecurity should include:
 
 - artifact directory path
-- total findings by severity
+- total material findings by severity
+- measured risk distribution
+- top remediation priorities
 - applied fixes by tier
 - review-required items
 - blocked items

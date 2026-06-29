@@ -145,10 +145,13 @@ Create artifacts under:
 Required files:
 
 - `scan-manifest.json`
+- `scan-summary.json`
 - `repository-map.json`
 - `threat-model.json`
 - `findings.json`
 - `coverage.json`
+- `validation/<finding-id>.json`
+- `patches/<finding-id>.patch.md`
 - `report.md`
 
 Autofix additionally writes:
@@ -158,7 +161,7 @@ Autofix additionally writes:
 
 ## Read Phase
 
-Build `scan-manifest.json` and `repository-map.json`.
+Build `scan-manifest.json`, `scan-summary.json`, and `repository-map.json`.
 
 `scan-manifest.json` must include:
 
@@ -174,6 +177,17 @@ Build `scan-manifest.json` and `repository-map.json`.
 - `languages`
 - `artifactPaths`
 - `limitations`
+
+`scan-summary.json` must include:
+
+- `status`
+- `coverageTotals`
+- `severityTotals`
+- `measuredRiskDistribution`
+- `topMaterialRisks`
+- `remediationPriorityQueue`
+- `deferredLowSignalCandidates`
+- `artifactIndex`
 
 `repository-map.json` must include:
 
@@ -211,12 +225,20 @@ Threat model fields:
 - `authAssumptions`
 - `sensitiveDataPaths`
 - `priorityReviewAreas`
+- `scopedOutAreas`
+
+Threat model priorities must focus analysis on attacker-controlled entry
+points, crossed trust/auth/tenant boundaries, sensitive sinks, and high-impact
+business flows.
 
 Finding fields:
 
 - `id`
 - `title`
 - `category`
+- `threatScore`
+- `likelihood`
+- `impact`
 - `severity`
 - `confidence`
 - `reachability`
@@ -229,6 +251,37 @@ Finding fields:
 - `proofGap`
 - `recommendation`
 - `autofix`
+
+Use this scoring model:
+
+```text
+threatScore = likelihood x impact x reachability x exploitability x confidence
+```
+
+All factors are normalized from `0.0` to `1.0`. Include only `critical`,
+`high`, and meaningful `medium` findings in `findings.json` by default. Move
+low, info, speculative, or missing-context observations into
+`coverage.json.deferredSignals` unless they materially change real-world risk.
+
+For every material finding, create `validation/<finding-id>.json` with:
+
+- `validationStatus`
+- `reproductionOrStrongestExploitCheck`
+- `legitimateBehaviorChecks`
+- `nearbyBypassChecks`
+- `evidence`
+- `counterEvidence`
+- `remainingProofGap`
+- `reviewerDecisionNeeded`
+
+For every accepted or fixable finding, create `patches/<finding-id>.patch.md`
+with:
+
+- root-cause remediation approach
+- expected diff summary
+- regression or verification plan
+- residual risk
+- rollback notes
 
 ## Threat Categories
 
@@ -296,11 +349,13 @@ Build `coverage.json` and `report.md`.
 2. Target and snapshot
 3. Coverage and limitations
 4. Threat model summary
-5. Findings by severity
-6. Finding details
-7. Safe autofix candidates
-8. Review-required remediations
-9. Blocked or deferred areas
+5. Measured risk distribution
+6. Top remediation priorities
+7. Findings by severity
+8. Finding details with validation status
+9. Safe autofix candidates
+10. Review-required remediations
+11. Blocked or deferred areas
 
 This report step is mandatory for every scan.
 
