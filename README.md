@@ -13,6 +13,37 @@ model, but smaller and local-first:
 read -> analyze -> report -> autofix -> rescan
 ```
 
+## Installation
+
+Repository:
+
+```text
+https://github.com/ilous12/presecurity
+```
+
+Claude Code:
+
+```text
+/plugin marketplace add https://github.com/ilous12/presecurity
+/plugin install presecurity@presecurity-marketplace
+```
+
+Codex CLI:
+
+```text
+codex plugin marketplace add ilous12/presecurity --ref main --sparse .agents/plugins --sparse plugins/codex/presecurity
+codex plugin add presecurity@presecurity
+```
+
+Codex Desktop:
+
+1. Open Codex settings.
+2. Open Plugins.
+3. Add marketplace source `ilous12/presecurity`.
+4. Install `presecurity`.
+5. Start a new thread.
+6. Run `/presecurity scan`.
+
 ## Product Contract
 
 presecurity is not a traditional rule-only scanner. The plugin instructions
@@ -95,37 +126,6 @@ limitations.
 ```text
 read latest artifacts -> apply safe-only fixes -> rescan -> update report
 ```
-
-## Installation
-
-Repository:
-
-```text
-https://github.com/ilous12/presecurity
-```
-
-Claude Code:
-
-```text
-/plugin marketplace add https://github.com/ilous12/presecurity
-/plugin install presecurity@presecurity-marketplace
-```
-
-Codex CLI:
-
-```text
-codex plugin marketplace add ilous12/presecurity --ref main --sparse .agents/plugins --sparse plugins/codex/presecurity
-codex plugin add presecurity@presecurity
-```
-
-Codex Desktop:
-
-1. Open Codex settings.
-2. Open Plugins.
-3. Add marketplace source `ilous12/presecurity`.
-4. Install `presecurity`.
-5. Start a new thread.
-6. Run `/presecurity scan`.
 
 ## Artifacts
 
