@@ -71,8 +71,15 @@ Screen output:
 Autofix:
 
 - create a fix plan
-- apply only `safe` deterministic changes
-- leave `review-required` and `blocked` items untouched
+- default to `safe` deterministic changes only
+- `/presecurity autofix safe` processes only `safe`
+- `/presecurity autofix review-required` processes `safe`, then
+  `review-required`
+- `/presecurity autofix blocked` processes `safe`, then `review-required`,
+  then `blocked`
+- apply fixes sequentially and run an impact check after every individual fix
+- stop on failed impact checks, destructive changes, broad unrelated diffs, or
+  unresolved ambiguity
 
 Rescan:
 

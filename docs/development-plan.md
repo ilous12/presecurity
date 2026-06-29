@@ -201,15 +201,22 @@ Acceptance:
 ## Phase 5. Safe Autofix
 
 1. Classify every finding as `safe`, `review-required`, or `blocked`.
-2. Apply only `safe` fixes.
-3. Keep edits minimal and deterministic.
-4. Write `autofix-result.json`.
-5. Rescan the changed files or the whole target.
-6. Update `report.md` with before/after status.
+2. Default `/presecurity autofix` and `/presecurity autofix safe` apply only
+   `safe` fixes.
+3. `/presecurity autofix review-required` applies `safe` fixes first, then
+   `review-required` fixes.
+4. `/presecurity autofix blocked` applies `safe` fixes first, then
+   `review-required` fixes, then `blocked` fixes.
+5. Keep edits minimal and deterministic.
+6. Apply one fix at a time, check impact, then continue iterating.
+7. Write `autofix-result.json`.
+8. Rescan the changed files or the whole target.
+9. Update `report.md` with before/after status.
 
 Acceptance:
 
-- No policy-dependent fix is applied without human review.
+- Policy-dependent or blocked fixes are applied only when the user invokes the
+  matching explicit autofix mode.
 - Every applied fix names exact files and changed intent.
 - Remaining findings are reported after rescan.
 

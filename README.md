@@ -81,6 +81,9 @@ Claude Code:
 /presecurity
 /presecurity scan
 /presecurity autofix
+/presecurity autofix safe
+/presecurity autofix review-required
+/presecurity autofix blocked
 /presecurity doctor
 /presecurity cleanup
 ```
@@ -91,6 +94,9 @@ Codex:
 /presecurity
 /presecurity scan
 /presecurity autofix
+/presecurity autofix safe
+/presecurity autofix review-required
+/presecurity autofix blocked
 /presecurity doctor
 /presecurity cleanup
 ```
@@ -126,6 +132,11 @@ limitations.
 ```text
 read latest artifacts -> apply safe-only fixes -> rescan -> update report
 ```
+
+Command completion depends on the host. The plugin exposes `/presecurity`
+through `commands/presecurity.md` and provides the argument hint
+`scan|autofix [safe|review-required|blocked]|doctor|cleanup` for hosts that
+surface command arguments.
 
 ## Artifacts
 
@@ -200,8 +211,22 @@ Every finding receives an autofix status:
 | Status | Meaning | Action |
 | --- | --- | --- |
 | `safe` | Narrow deterministic change with low behavior risk | Apply automatically |
-| `review-required` | Security policy or business intent decision needed | Report suggestion only |
-| `blocked` | Intent unclear or fix is too broad | Report only |
+| `review-required` | Security policy or business intent decision needed | Apply only with `/presecurity autofix review-required` or higher |
+| `blocked` | Intent unclear or fix is too broad | Apply only with `/presecurity autofix blocked` |
+
+Autofix modes:
+
+| Command | Risk tiers processed |
+| --- | --- |
+| `/presecurity autofix` | `safe` |
+| `/presecurity autofix safe` | `safe` |
+| `/presecurity autofix review-required` | `safe` -> `review-required` |
+| `/presecurity autofix blocked` | `safe` -> `review-required` -> `blocked` |
+
+Every mode applies fixes sequentially. After each individual fix, presecurity
+checks impact, rescans changed files when possible, updates the finding status,
+and then continues. If an impact check fails or the diff becomes broad,
+destructive, or ambiguous, the mode stops and reports the remaining items.
 
 Safe examples:
 

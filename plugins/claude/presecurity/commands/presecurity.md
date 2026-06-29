@@ -1,6 +1,6 @@
 ---
 description: Scan a codebase, automatically generate a report, and safe-autofix security issues
-argument-hint: "scan|autofix|doctor|cleanup"
+argument-hint: "scan|autofix [safe|review-required|blocked]|doctor|cleanup"
 ---
 
 # /presecurity
@@ -16,7 +16,10 @@ menu and stop:
 
 ```text
 /presecurity scan      Read, analyze, and write report artifacts.
-/presecurity autofix   Apply safe-only fixes, rescan, and update the report.
+/presecurity autofix   Apply safe-only fixes.
+/presecurity autofix safe
+/presecurity autofix review-required
+/presecurity autofix blocked
 /presecurity doctor    Verify plugin surfaces and artifact write access.
 /presecurity cleanup   Remove generated .presecurity artifacts.
 ```
@@ -62,7 +65,8 @@ When the scan completes, show only a compact result summary:
 Keep detailed evidence, attack paths, and remediation notes in `report.md` and
 the JSON artifacts instead of printing them to the chat.
 
-When the user invokes `/presecurity autofix`, run:
+When the user invokes `/presecurity autofix` or `/presecurity autofix safe`,
+run:
 
 ```text
 read latest artifacts -> classify fixes -> apply safe-only fixes -> rescan -> update report
@@ -245,7 +249,30 @@ Classify every finding:
 - `review-required`: security policy or business intent decision needed.
 - `blocked`: unclear intent or broad change.
 
-Apply only `safe` fixes. Never apply `review-required` or `blocked` fixes.
+Autofix modes:
+
+- `/presecurity autofix`: same as `/presecurity autofix safe`.
+- `/presecurity autofix safe`: process only `safe` fixes.
+- `/presecurity autofix review-required`: process `safe` fixes first, then
+  `review-required` fixes.
+- `/presecurity autofix blocked`: process `safe` fixes first, then
+  `review-required` fixes, then `blocked` fixes.
+
+Processing rules:
+
+1. Process one risk tier at a time in this order: `safe`,
+   `review-required`, `blocked`.
+2. Within each tier, apply one fix at a time.
+3. After each fix, run the smallest meaningful impact check: inspect the diff,
+   rescan changed files when possible, and update the finding status.
+4. Continue iterating within the current tier until no eligible finding remains
+   or an impact check fails.
+5. Move to the next tier only when the current tier is clean.
+6. Stop immediately on behavior ambiguity, failed impact checks, broad
+   unrelated diffs, or destructive/irreversible changes.
+
+Default behavior is safe-only. Never apply `review-required` or `blocked`
+findings unless the user explicitly invoked the matching autofix mode.
 
 Safe examples:
 

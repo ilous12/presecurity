@@ -74,6 +74,9 @@ Use this skill for:
 - `/presecurity` to show commands only
 - `/presecurity scan`
 - `/presecurity autofix`
+- `/presecurity autofix safe`
+- `/presecurity autofix review-required`
+- `/presecurity autofix blocked`
 - `/presecurity doctor`
 - `/presecurity cleanup`
 
@@ -287,7 +290,30 @@ Classify each finding:
 - `review-required`: security policy or business intent decision needed.
 - `blocked`: intent unclear or fix is too broad.
 
-Only apply `safe` fixes. Never apply `review-required` or `blocked` fixes.
+Autofix modes:
+
+- `/presecurity autofix`: same as `/presecurity autofix safe`.
+- `/presecurity autofix safe`: process only `safe` fixes.
+- `/presecurity autofix review-required`: process `safe` fixes first, then
+  `review-required` fixes.
+- `/presecurity autofix blocked`: process `safe` fixes first, then
+  `review-required` fixes, then `blocked` fixes.
+
+Processing rules:
+
+1. Process one risk tier at a time in this order: `safe`,
+   `review-required`, `blocked`.
+2. Within each tier, apply one fix at a time.
+3. After each fix, run the smallest meaningful impact check: inspect the diff,
+   rescan changed files when possible, and update the finding status.
+4. Continue iterating within the current tier until no eligible finding remains
+   or an impact check fails.
+5. Move to the next tier only when the current tier is clean.
+6. Stop immediately on behavior ambiguity, failed impact checks, broad
+   unrelated diffs, or destructive/irreversible changes.
+
+Default behavior is safe-only. Never apply `review-required` or `blocked`
+findings unless the user explicitly invoked the matching autofix mode.
 
 Safe examples:
 
@@ -310,7 +336,7 @@ Review-required examples:
 
 1. Read latest `.presecurity/scans/*/findings.json`.
 2. Write `fix-plan.json`.
-3. Apply only `safe` fixes using the smallest edit possible.
+3. Apply the selected autofix tier sequence using the smallest edit possible.
 4. Write `autofix-result.json` with exact changed files and skipped items.
 5. Rescan changed files or the full target.
 6. Update `report.md` with fixed, remaining, and deferred findings.
