@@ -30,6 +30,33 @@ read latest artifacts -> classify fixes -> apply safe-only fixes -> rescan -> up
 Git is optional. If Git is unavailable, treat the target as a local directory
 snapshot. Do not require commit hashes, branches, pull requests, or history.
 
+## Screen Output Contract
+
+During scan execution, show only short progress updates on screen. Do not
+stream detailed analysis, raw findings, file-by-file notes, chain-of-thought,
+or patch suggestions while the scan is running.
+
+Use concise progress lines such as:
+
+```text
+presecurity: reading files...
+presecurity: analyzing trust boundaries...
+presecurity: writing report...
+```
+
+When the scan completes, show only a compact result summary:
+
+- artifact directory
+- total findings by severity
+- top findings by title and severity
+- safe autofix candidates count
+- review-required count
+- blocked count
+- proof gaps and limitations
+
+Keep detailed evidence, attack paths, and remediation notes in `report.md` and
+the JSON artifacts instead of printing them to the chat.
+
 ## Invocation Forms
 
 Use this skill for:

@@ -76,6 +76,12 @@ read -> analyze -> report
 `/presecurity scan` has the same behavior. A scan is not complete until
 `report.md` and the structured JSON artifacts are written.
 
+During a scan, the screen should show progress only. Detailed findings,
+evidence, attack paths, and remediation notes belong in `report.md` and JSON
+artifacts. After the scan completes, the agent should print only a compact
+summary: artifact directory, severity totals, top findings, safe autofix count,
+review-required count, blocked count, and limitations.
+
 `/presecurity autofix` behavior:
 
 ```text

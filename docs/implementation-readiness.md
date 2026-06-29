@@ -54,6 +54,15 @@ Report:
 
 `scan` includes this report step automatically.
 
+Screen output:
+
+- while scanning, show only concise progress status
+- do not print detailed findings, file-by-file notes, or patch suggestions
+  before the report is complete
+- after completion, print only a compact result summary
+- keep detailed evidence, attack paths, proof gaps, and remediation guidance in
+  `report.md` and JSON artifacts
+
 Autofix:
 
 - create a fix plan
