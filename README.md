@@ -2,14 +2,14 @@
 
 [한국어](한글.md)
 
-presecurity is a local, source-based **white-box security review** plugin for
+presecurity is a local, source-based **code security review** plugin for
 Claude and Codex. It helps experts and non-experts inspect a codebase, find
 realistic vulnerabilities, produce reviewable evidence, and apply controlled
 root-cause fixes.
 
-It inherits the lightweight concept of Codex Security artifacts, but it does not
-depend on a cloud service. The host coding agent reads the local source tree and
-writes local artifacts only.
+It inherits the concept of Codex Security artifacts as a lightweight local
+workflow, but it does not depend on a cloud service. The host coding agent reads
+the local source tree and writes local artifacts only.
 
 ## Installation
 
@@ -63,7 +63,7 @@ Codex Desktop:
 presecurity is not a rule-only SAST scanner. It is an agent-guided **secure code
 review** workflow:
 
-- **White-box security review**: analyze source code with full code context.
+- **Code security review**: analyze source code with full code context.
 - **Agent-assisted vulnerability research**: reason across files, data flows,
   trust boundaries, and business logic.
 - **Adversarial validation**: challenge each candidate finding before it is

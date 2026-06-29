@@ -10,7 +10,8 @@ and tiered autofix edits directly.
 read -> analyze -> report -> autofix -> rescan
 ```
 
-presecurity borrows Codex Security's public artifact model:
+presecurity inherits the Codex Security artifacts concept as a lightweight local
+workflow:
 
 - `scan-manifest.json`
 - `scan-summary.json`
