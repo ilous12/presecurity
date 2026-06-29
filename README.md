@@ -1,5 +1,7 @@
 # presecurity
 
+[한국어](한글.md)
+
 presecurity is a local, source-based **white-box security review** plugin for
 Claude and Codex. It helps experts and non-experts inspect a codebase, find
 realistic vulnerabilities, produce reviewable evidence, and apply controlled
