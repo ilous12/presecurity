@@ -59,7 +59,7 @@ Codex Desktop:
 3. Add marketplace source `ilous12/presecurity`.
 4. Install `presecurity`.
 5. Start a new thread.
-6. Run `/presecurity scan`.
+6. Run `@presecurity scan`.
 
 ## Product Contract
 
@@ -114,26 +114,28 @@ Claude Code:
 Codex:
 
 ```text
-/presecurity
-/presecurity scan
-/presecurity autofix
-/presecurity autofix safe
-/presecurity autofix review-required
-/presecurity autofix blocked
-/presecurity doctor
-/presecurity cleanup
+@presecurity
+@presecurity scan
+@presecurity autofix
+@presecurity autofix safe
+@presecurity autofix review-required
+@presecurity autofix blocked
+@presecurity doctor
+@presecurity cleanup
 ```
 
 The `$presecurity` skill is also available for natural-language invocation in
 Codex.
 
-Default `/presecurity` behavior:
+Default command behavior:
 
 ```text
 show available commands only
 ```
 
-`/presecurity` by itself does not start a scan. Use `/presecurity scan` to run:
+Claude uses `/presecurity`; Codex uses `@presecurity`. The command by itself
+does not start a scan. Use `/presecurity scan` in Claude or
+`@presecurity scan` in Codex to run:
 
 ```text
 read -> analyze -> report
@@ -150,14 +152,14 @@ should print only a compact summary: artifact directory, severity totals, top
 findings, safe autofix count, review-required count, blocked count, recommended
 autofix command, and limitations.
 
-`/presecurity autofix` behavior:
+Autofix behavior:
 
 ```text
 read latest artifacts -> apply safe-only fixes -> rescan -> update report
 ```
 
-Command completion depends on the host. The plugin exposes `/presecurity`
-through `commands/presecurity.md` and provides the argument hint
+Command completion depends on the host. Claude exposes `/presecurity`; Codex
+exposes `@presecurity`. Both provide the argument hint
 `scan|autofix [safe|review-required|blocked]|doctor|cleanup` for hosts that
 surface command arguments.
 
@@ -289,30 +291,30 @@ explicit autofix mode. Every finding receives an autofix status:
 | Status | Meaning | Action |
 | --- | --- | --- |
 | `safe` | Narrow deterministic change with low behavior risk | Apply automatically |
-| `review-required` | Security policy or business intent decision needed | Apply only with `/presecurity autofix review-required` or higher |
-| `blocked` | Intent unclear or fix is too broad | Apply only with `/presecurity autofix blocked` |
+| `review-required` | Security policy or business intent decision needed | Apply only with the host's `autofix review-required` command or higher |
+| `blocked` | Intent unclear or fix is too broad | Apply only with the host's `autofix blocked` command |
 
 Autofix modes:
 
-| Command | Risk tiers processed |
-| --- | --- |
-| `/presecurity autofix` | `safe` |
-| `/presecurity autofix safe` | `safe` |
-| `/presecurity autofix review-required` | `safe` -> `review-required` |
-| `/presecurity autofix blocked` | `safe` -> `review-required` -> `blocked` |
+| Claude command | Codex command | Risk tiers processed |
+| --- | --- | --- |
+| `/presecurity autofix` | `@presecurity autofix` | `safe` |
+| `/presecurity autofix safe` | `@presecurity autofix safe` | `safe` |
+| `/presecurity autofix review-required` | `@presecurity autofix review-required` | `safe` -> `review-required` |
+| `/presecurity autofix blocked` | `@presecurity autofix blocked` | `safe` -> `review-required` -> `blocked` |
 
 After every scan, recommend the highest needed autofix mode from the latest
 artifact counts:
 
-| Latest scan state | Recommended command |
-| --- | --- |
-| Any `blocked` items exist | `/presecurity autofix blocked` |
-| No `blocked`, any `review-required` items exist | `/presecurity autofix review-required` |
-| Only `safe` items exist | `/presecurity autofix safe` |
-| No fixable items exist | No autofix recommended |
+| Latest scan state | Claude recommendation | Codex recommendation |
+| --- | --- | --- |
+| Any `blocked` items exist | `/presecurity autofix blocked` | `@presecurity autofix blocked` |
+| No `blocked`, any `review-required` items exist | `/presecurity autofix review-required` | `@presecurity autofix review-required` |
+| Only `safe` items exist | `/presecurity autofix safe` | `@presecurity autofix safe` |
+| No fixable items exist | No autofix recommended | No autofix recommended |
 
 The recommendation is advisory. It must not apply fixes automatically after
-`/presecurity scan`.
+`/presecurity scan` or `@presecurity scan`.
 
 Every mode applies fixes sequentially. After each individual fix, presecurity
 checks impact, rescans changed files when possible, updates the finding status,
@@ -358,9 +360,15 @@ The `examples/` folder contains intentionally vulnerable fixtures for every
 supported platform family. Use it as the regression corpus for plugin behavior:
 
 ```text
+Claude:
 /presecurity scan examples
 /presecurity scan examples/mobile/android-kotlin
 /presecurity autofix
+
+Codex:
+@presecurity scan examples
+@presecurity scan examples/mobile/android-kotlin
+@presecurity autofix
 ```
 
 The examples are not production samples. They exist to verify finding

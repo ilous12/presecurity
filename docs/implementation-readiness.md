@@ -38,7 +38,8 @@ finding IDs, and code identifiers remain stable.
 
 ## Workflow Contract
 
-`/presecurity` without arguments is command-list only and must not scan.
+Claude uses `/presecurity`; Codex uses `@presecurity`. The command without
+arguments is command-list only and must not scan.
 
 ```text
 read -> analyze -> report -> autofix -> rescan
@@ -87,15 +88,18 @@ Autofix:
 
 - create a fix plan
 - default to `safe` deterministic changes only
-- `/presecurity autofix safe` processes only `safe`
-- `/presecurity autofix review-required` processes `safe`, then
+- Claude `/presecurity autofix safe` and Codex `@presecurity autofix safe`
+  process only `safe`
+- Claude `/presecurity autofix review-required` and Codex
+  `@presecurity autofix review-required` process `safe`, then
   `review-required`
-- `/presecurity autofix blocked` processes `safe`, then `review-required`,
-  then `blocked`
-- scan summaries recommend `/presecurity autofix blocked` if any blocked
-  items exist, else `/presecurity autofix review-required` if any
-  review-required items exist, else `/presecurity autofix safe` if only safe
-  items exist
+- Claude `/presecurity autofix blocked` and Codex
+  `@presecurity autofix blocked` process `safe`, then `review-required`, then
+  `blocked`
+- scan summaries recommend the host-specific blocked command if any blocked
+  items exist, else the host-specific review-required command if any
+  review-required items exist, else the host-specific safe command if only
+  safe items exist
 - apply fixes sequentially and run an impact check after every individual fix
 - stop on failed impact checks, destructive changes, broad unrelated diffs, or
   unresolved ambiguity
@@ -136,8 +140,8 @@ A working plugin run is complete when:
 7. `.presecurity/scans/<scan-id>/report.md` exists.
 8. Material findings have matching `validation/<finding-id>.json`.
 9. Accepted or fixable findings have matching `patches/<finding-id>.patch.md`.
-10. `/presecurity autofix` can create `fix-plan.json` and
-   `autofix-result.json` without applying unsafe changes.
+10. The host-specific autofix command can create `fix-plan.json` and
+    `autofix-result.json` without applying unsafe changes.
 
 Findings are complete only when they include measured threat score,
 likelihood, impact, reachability, exploitability, confidence, evidence,

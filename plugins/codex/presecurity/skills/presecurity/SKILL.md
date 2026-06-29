@@ -11,8 +11,8 @@ safe-only behavior by default.
 
 ## Operating Contract
 
-`/presecurity` with no arguments is help-only. Show the available command list
-and stop. Do not scan unless the user invokes `/presecurity scan` or explicitly
+`@presecurity` with no arguments is help-only. Show the available command list
+and stop. Do not scan unless the user invokes `@presecurity scan` or explicitly
 asks to scan through `$presecurity`.
 
 Scan workflow:
@@ -89,13 +89,13 @@ the JSON artifacts instead of printing them to the chat.
 
 Recommend the highest needed autofix mode from the latest scan counts:
 
-- if any `blocked` items exist, recommend `/presecurity autofix blocked`
+- if any `blocked` items exist, recommend `@presecurity autofix blocked`
 - else if any `review-required` items exist, recommend
-  `/presecurity autofix review-required`
-- else if any `safe` items exist, recommend `/presecurity autofix safe`
+  `@presecurity autofix review-required`
+- else if any `safe` items exist, recommend `@presecurity autofix safe`
 - else state that no autofix is recommended
 
-This is only a recommendation after `/presecurity scan`; do not start autofix
+This is only a recommendation after `@presecurity scan`; do not start autofix
 automatically.
 
 ## Invocation Forms
@@ -105,14 +105,14 @@ Use this skill for:
 - `Use $presecurity to review this repository.`
 - `Use $presecurity to scan this folder.`
 - `Use $presecurity to apply tiered autofixes.`
-- `/presecurity` to show commands only
-- `/presecurity scan`
-- `/presecurity autofix`
-- `/presecurity autofix safe`
-- `/presecurity autofix review-required`
-- `/presecurity autofix blocked`
-- `/presecurity doctor`
-- `/presecurity cleanup`
+- `@presecurity` to show commands only
+- `@presecurity scan`
+- `@presecurity autofix`
+- `@presecurity autofix safe`
+- `@presecurity autofix review-required`
+- `@presecurity autofix blocked`
+- `@presecurity doctor`
+- `@presecurity cleanup`
 
 ## Target Resolution
 
@@ -381,11 +381,11 @@ Classify each finding:
 
 Autofix modes:
 
-- `/presecurity autofix`: same as `/presecurity autofix safe`.
-- `/presecurity autofix safe`: process only `safe` fixes.
-- `/presecurity autofix review-required`: process `safe` fixes first, then
+- `@presecurity autofix`: same as `@presecurity autofix safe`.
+- `@presecurity autofix safe`: process only `safe` fixes.
+- `@presecurity autofix review-required`: process `safe` fixes first, then
   `review-required` fixes.
-- `/presecurity autofix blocked`: process `safe` fixes first, then
+- `@presecurity autofix blocked`: process `safe` fixes first, then
   `review-required` fixes, then `blocked` fixes.
 
 After a scan, suggest the highest mode required by the artifact counts:

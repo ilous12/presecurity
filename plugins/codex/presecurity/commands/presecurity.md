@@ -3,7 +3,7 @@ description: Scan a codebase, automatically generate a report, and apply tiered 
 argument-hint: "scan|autofix [safe|review-required|blocked]|doctor|cleanup"
 ---
 
-# /presecurity
+# @presecurity
 
 presecurity is a Markdown-first security review command. Execute the workflow
 directly as the coding agent: read files, reason about security intent, write
@@ -36,33 +36,33 @@ If the host language setting is unavailable, infer the language from the user's
 current request. Keep artifact schemas, JSON keys, file names, command names,
 finding IDs, and code identifiers unchanged.
 
-When the user invokes `/presecurity` with no arguments, show only this command
+When the user invokes `@presecurity` with no arguments, show only this command
 menu and stop:
 
 ```text
-/presecurity scan      Read, analyze, and write report artifacts.
-/presecurity autofix   Apply safe-only fixes.
-/presecurity autofix safe
-/presecurity autofix review-required
-/presecurity autofix blocked
-/presecurity doctor    Verify plugin surfaces and artifact write access.
-/presecurity cleanup   Remove generated .presecurity artifacts.
+@presecurity scan      Read, analyze, and write report artifacts.
+@presecurity autofix   Apply safe-only fixes.
+@presecurity autofix safe
+@presecurity autofix review-required
+@presecurity autofix blocked
+@presecurity doctor    Verify plugin surfaces and artifact write access.
+@presecurity cleanup   Remove generated .presecurity artifacts.
 ```
 
-Do not start a scan from `/presecurity` alone.
+Do not start a scan from `@presecurity` alone.
 
-When the user invokes `/presecurity scan`, run:
+When the user invokes `@presecurity scan`, run:
 
 ```text
 read -> analyze -> report
 ```
 
-Do not stop after analysis. `/presecurity scan` is complete only after
+Do not stop after analysis. `@presecurity scan` is complete only after
 `report.md` and the structured JSON artifacts are written.
 
 ## Screen Output
 
-During `/presecurity scan`, show only short progress updates on screen. Do not
+During `@presecurity scan`, show only short progress updates on screen. Do not
 stream detailed analysis, raw findings, file-by-file notes, chain-of-thought,
 patch suggestions, or file write logs while the scan is running.
 
@@ -102,16 +102,16 @@ the JSON artifacts instead of printing them to the chat.
 
 Recommend the highest needed autofix mode from the latest scan counts:
 
-- if any `blocked` items exist, recommend `/presecurity autofix blocked`
+- if any `blocked` items exist, recommend `@presecurity autofix blocked`
 - else if any `review-required` items exist, recommend
-  `/presecurity autofix review-required`
-- else if any `safe` items exist, recommend `/presecurity autofix safe`
+  `@presecurity autofix review-required`
+- else if any `safe` items exist, recommend `@presecurity autofix safe`
 - else state that no autofix is recommended
 
-This is only a recommendation after `/presecurity scan`; do not start autofix
+This is only a recommendation after `@presecurity scan`; do not start autofix
 automatically.
 
-When the user invokes `/presecurity autofix` or `/presecurity autofix safe`,
+When the user invokes `@presecurity autofix` or `@presecurity autofix safe`,
 run:
 
 ```text
@@ -344,7 +344,7 @@ Create `report.md` with:
 10. Review-required remediations
 11. Blocked or deferred areas
 
-This report step is mandatory for `/presecurity scan`.
+This report step is mandatory for `@presecurity scan`.
 
 ## Autofix
 
@@ -356,11 +356,11 @@ Classify every finding:
 
 Autofix modes:
 
-- `/presecurity autofix`: same as `/presecurity autofix safe`.
-- `/presecurity autofix safe`: process only `safe` fixes.
-- `/presecurity autofix review-required`: process `safe` fixes first, then
+- `@presecurity autofix`: same as `@presecurity autofix safe`.
+- `@presecurity autofix safe`: process only `safe` fixes.
+- `@presecurity autofix review-required`: process `safe` fixes first, then
   `review-required` fixes.
-- `/presecurity autofix blocked`: process `safe` fixes first, then
+- `@presecurity autofix blocked`: process `safe` fixes first, then
   `review-required` fixes, then `blocked` fixes.
 
 After a scan, suggest the highest mode required by the artifact counts:
@@ -425,7 +425,7 @@ Review-required examples:
 
 ## Doctor
 
-For `/presecurity doctor`, verify:
+For `@presecurity doctor`, verify:
 
 - this command file exists
 - the `$presecurity` skill exists

@@ -239,25 +239,29 @@ Acceptance:
 ## Phase 5. Tiered Autofix
 
 1. Classify every finding as `safe`, `review-required`, or `blocked`.
-2. Default `/presecurity autofix` and `/presecurity autofix safe` apply only
-   `safe` fixes.
-3. `/presecurity autofix review-required` applies `safe` fixes first, then
+2. Claude `/presecurity autofix` and Codex `@presecurity autofix` apply only
+   `safe` fixes by default.
+3. Claude `/presecurity autofix safe` and Codex `@presecurity autofix safe`
+   also apply only `safe` fixes.
+4. Claude `/presecurity autofix review-required` and Codex
+   `@presecurity autofix review-required` apply `safe` fixes first, then
    `review-required` fixes.
-4. `/presecurity autofix blocked` applies `safe` fixes first, then
+5. Claude `/presecurity autofix blocked` and Codex
+   `@presecurity autofix blocked` apply `safe` fixes first, then
    `review-required` fixes, then `blocked` fixes.
-5. After each scan, recommend the highest needed autofix command from artifact
-   counts:
-   - any `blocked` -> `/presecurity autofix blocked`
-   - else any `review-required` -> `/presecurity autofix review-required`
-   - else any `safe` -> `/presecurity autofix safe`
+6. After each scan, recommend the highest needed host-specific autofix command
+   from artifact counts:
+   - any `blocked` -> blocked autofix command
+   - else any `review-required` -> review-required autofix command
+   - else any `safe` -> safe autofix command
    - else no autofix recommended
-6. Do not execute the recommended command automatically after scan.
-7. Keep edits minimal and deterministic.
-8. Apply root-cause fixes only; do not apply partial mitigations.
-9. Apply one fix at a time, check impact, then continue iterating.
-10. Write `autofix-result.json`.
-11. Rescan the changed files or the whole target.
-12. Update `report.md` with before/after status.
+7. Do not execute the recommended command automatically after scan.
+8. Keep edits minimal and deterministic.
+9. Apply root-cause fixes only; do not apply partial mitigations.
+10. Apply one fix at a time, check impact, then continue iterating.
+11. Write `autofix-result.json`.
+12. Rescan the changed files or the whole target.
+13. Update `report.md` with before/after status.
 
 Acceptance:
 
