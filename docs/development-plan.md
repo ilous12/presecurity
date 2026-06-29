@@ -2,7 +2,7 @@
 
 This TODO assumes a Markdown-first plugin. The agent host reads the
 command/skill contract and performs repository inspection, artifact writing,
-and safe edits directly.
+and tiered autofix edits directly.
 
 ## Design Baseline
 
@@ -37,14 +37,16 @@ Git is optional. Without Git, use a sealed local snapshot:
 
 1. Keep one Claude command at
    `plugins/claude/presecurity/commands/presecurity.md`.
-2. Keep one Codex skill at
+2. Keep one Codex command at
+   `plugins/codex/presecurity/commands/presecurity.md`.
+3. Keep one Codex skill at
    `plugins/codex/presecurity/skills/presecurity/SKILL.md`.
-3. Keep plugin packages free of bundled runtime runners.
-4. Update plugin manifests so the product is described as agent-driven,
+4. Keep plugin packages free of bundled runtime runners.
+5. Update plugin manifests so the product is described as agent-driven,
    Markdown-first, and local-first.
-5. Keep marketplace files for GitHub installation.
-6. Document that the host agent performs file reads, artifact writes, and
-   deterministic safe edits directly.
+6. Keep marketplace files for GitHub installation.
+7. Document that the host agent performs file reads, artifact writes, and
+   tiered autofix edits directly.
 
 Acceptance:
 
@@ -198,7 +200,7 @@ Acceptance:
 - Findings map to exactly one primary threat category.
 - Secondary categories may be added only when they clarify remediation.
 
-## Phase 5. Safe Autofix
+## Phase 5. Tiered Autofix
 
 1. Classify every finding as `safe`, `review-required`, or `blocked`.
 2. Default `/presecurity autofix` and `/presecurity autofix safe` apply only

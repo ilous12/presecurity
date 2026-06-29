@@ -1,13 +1,13 @@
 ---
 name: presecurity
-description: Use when the user asks to run presecurity, scan a codebase for security, produce presecurity artifacts, or apply presecurity safe autofixes.
+description: Use when the user asks to run presecurity, scan a codebase for security, produce presecurity artifacts, or apply presecurity tiered autofixes.
 ---
 
 # presecurity
 
 presecurity is a Markdown-first security review plugin. Execute this workflow
-directly by reading files, writing artifacts, and applying only safe
-deterministic edits.
+directly by reading files, writing artifacts, and applying tiered fixes with
+safe-only behavior by default.
 
 ## Operating Contract
 
@@ -70,7 +70,7 @@ Use this skill for:
 
 - `Use $presecurity to review this repository.`
 - `Use $presecurity to scan this folder.`
-- `Use $presecurity to apply safe autofixes.`
+- `Use $presecurity to apply tiered autofixes.`
 - `/presecurity` to show commands only
 - `/presecurity scan`
 - `/presecurity autofix`
@@ -361,7 +361,7 @@ Report:
 
 - artifact directory
 - total findings by severity
-- safe fixes applied
+- applied fixes by tier
 - review-required findings
 - blocked findings
 - proof gaps and limitations

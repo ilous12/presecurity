@@ -9,6 +9,7 @@ Use these examples to test the Markdown-first presecurity workflow:
 /presecurity scan examples
 /presecurity scan examples/mobile/android-kotlin
 /presecurity autofix
+/presecurity autofix review-required
 ```
 
 For Codex:
@@ -23,7 +24,9 @@ Expected behavior:
 - It should report findings with evidence, counterevidence, proof gaps, and
   autofix classification.
 - It should mark intentionally broad policy fixes as `review-required`.
-- It should apply only safe deterministic autofixes during autofix tests.
+- It should apply only safe deterministic autofixes by default.
+- It should process higher-risk tiers only when the matching autofix mode is
+  explicitly invoked.
 
 ## Fixture Matrix
 
@@ -68,4 +71,9 @@ Expected behavior:
 6. Confirm `coverage.json` records skipped/deferred surfaces.
 7. Confirm `report.md` groups findings by severity.
 8. Run autofix only after checking `fix-plan.json`.
-9. Confirm review-required findings are not edited.
+9. Confirm default `/presecurity autofix` edits only `safe` findings.
+10. Confirm `/presecurity autofix review-required` processes `safe` first,
+    checks impact, then processes `review-required`.
+11. Confirm `/presecurity autofix blocked` processes `safe`, then
+    `review-required`, then `blocked`, stopping on ambiguity or failed impact
+    checks.

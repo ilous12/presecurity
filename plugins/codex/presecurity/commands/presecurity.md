@@ -1,5 +1,5 @@
 ---
-description: Scan a codebase, automatically generate a report, and safe-autofix security issues.
+description: Scan a codebase, automatically generate a report, and apply tiered autofixes.
 argument-hint: "scan|autofix [safe|review-required|blocked]|doctor|cleanup"
 ---
 
@@ -7,7 +7,7 @@ argument-hint: "scan|autofix [safe|review-required|blocked]|doctor|cleanup"
 
 presecurity is a Markdown-first security review command. Execute the workflow
 directly as the coding agent: read files, reason about security intent, write
-artifacts, and apply only safe deterministic edits.
+artifacts, and apply tiered fixes with safe-only behavior by default.
 
 ## Arguments
 

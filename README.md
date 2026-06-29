@@ -4,7 +4,8 @@
 
 presecurity is a Markdown-first security review plugin for coding agents.
 It helps Claude Code and Codex read a codebase, reason about security intent,
-produce reviewable artifacts, and apply only safe deterministic fixes.
+produce reviewable artifacts, and apply tiered fixes with safe-only behavior by
+default.
 
 The product shape is intentionally close to Codex Security's public artifact
 model, but smaller and local-first:
@@ -205,8 +206,8 @@ function names. Findings should map to one of these categories:
 
 ## Autofix Policy
 
-presecurity must never apply broad or policy-dependent fixes automatically.
-Every finding receives an autofix status:
+presecurity applies only safe fixes by default. Higher-risk tiers require an
+explicit autofix mode. Every finding receives an autofix status:
 
 | Status | Meaning | Action |
 | --- | --- | --- |
@@ -266,4 +267,4 @@ supported platform family. Use it as the regression corpus for plugin behavior:
 ```
 
 The examples are not production samples. They exist to verify finding
-categories, evidence quality, coverage artifacts, and safe autofix behavior.
+categories, evidence quality, coverage artifacts, and tiered autofix behavior.

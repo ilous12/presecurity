@@ -8,7 +8,8 @@ This document fixes the implementation shape before feature work continues.
 - Do not require Git.
 - Do not require a bundled language runtime.
 - Do not require shell runners.
-- Do not auto-apply policy-dependent or broad patches.
+- Do not apply policy-dependent or broad patches unless the user explicitly
+  invokes the matching autofix tier and impact checks pass.
 - Do not claim runtime exploit reproduction unless it was actually performed.
 
 ## Required Shape
@@ -16,6 +17,7 @@ This document fixes the implementation shape before feature work continues.
 presecurity is a Markdown-first plugin. The core implementation lives in:
 
 - `plugins/claude/presecurity/commands/presecurity.md`
+- `plugins/codex/presecurity/commands/presecurity.md`
 - `plugins/codex/presecurity/skills/presecurity/SKILL.md`
 - `README.md`
 - `docs/development-plan.md`
@@ -116,7 +118,7 @@ Every final agent response after running presecurity should include:
 
 - artifact directory path
 - total findings by severity
-- safe fixes applied
+- applied fixes by tier
 - review-required items
 - blocked items
 - proof gaps and limitations

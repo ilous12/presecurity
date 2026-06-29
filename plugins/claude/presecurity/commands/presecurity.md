@@ -1,5 +1,5 @@
 ---
-description: Scan a codebase, automatically generate a report, and safe-autofix security issues
+description: Scan a codebase, automatically generate a report, and apply tiered autofixes
 argument-hint: "scan|autofix [safe|review-required|blocked]|doctor|cleanup"
 ---
 
@@ -7,7 +7,7 @@ argument-hint: "scan|autofix [safe|review-required|blocked]|doctor|cleanup"
 
 presecurity is a Markdown-first security review command. Execute the workflow
 directly as the coding agent: read files, reason about security intent, write
-artifacts, and apply only safe deterministic edits.
+artifacts, and apply tiered fixes with safe-only behavior by default.
 
 ## Default Behavior
 
@@ -292,8 +292,8 @@ Review-required examples:
 - Android cleartext or iOS ATS tightening
 - crypto migrations that affect stored data compatibility
 
-After safe edits, rescan changed files or the full target and update the
-artifact bundle.
+After selected tier edits, rescan changed files or the full target and update
+the artifact bundle.
 
 ## Doctor
 
@@ -315,7 +315,7 @@ Always return:
 
 - artifact directory
 - findings by severity
-- safe fixes applied
+- applied fixes by tier
 - review-required findings
 - blocked findings
 - proof gaps and limitations
