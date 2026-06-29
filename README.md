@@ -2,17 +2,14 @@
 
 ![presecurity logo](assets/presecurity-logo.png)
 
-presecurity is a Markdown-first security review plugin for coding agents.
-It helps Claude Code and Codex read a codebase, reason about security intent,
-produce reviewable artifacts, and apply tiered fixes with safe-only behavior by
-default.
+presecurity is a local, source-based **white-box security review** plugin for
+Claude and Codex. It helps experts and non-experts inspect a codebase, find
+realistic vulnerabilities, produce reviewable evidence, and apply controlled
+root-cause fixes.
 
-The product shape is intentionally close to Codex Security's public artifact
-model, but smaller and local-first:
-
-```text
-read -> analyze -> report -> autofix -> rescan
-```
+It inherits the lightweight concept of Codex Security artifacts, but it does not
+depend on a cloud service. The host coding agent reads the local source tree and
+writes local artifacts only.
 
 ## Installation
 
@@ -61,44 +58,65 @@ Codex Desktop:
 5. Start a new thread.
 6. Run `@presecurity scan`.
 
-## Product Contract
+## What It Is
 
-presecurity is not a traditional rule-only scanner. The plugin instructions
-ask the host coding agent to inspect code intent, trust boundaries, attacker
-inputs, sensitive sinks, evidence, counterevidence, proof gaps, and safe fix
-eligibility.
+presecurity is not a rule-only SAST scanner. It is an agent-guided **secure code
+review** workflow:
 
-The project minimizes Python and shell. The implementation contract lives in
-Markdown so agent hosts can execute the workflow directly from the command or
-skill instructions.
+- **White-box security review**: analyze source code with full code context.
+- **Agent-assisted vulnerability research**: reason across files, data flows,
+  trust boundaries, and business logic.
+- **Evidence-first reporting**: write structured artifacts that can be reviewed
+  without rerunning the scan.
+- **Controlled remediation**: suggest and apply fixes by risk tier, with
+  safe-only behavior by default.
 
-User-facing plugin output follows the current host/user language setting:
-English settings show English command help, progress, and summaries; Korean
-settings show Korean command help, progress, and summaries. Artifact schemas,
-JSON keys, file names, command names, finding IDs, and code identifiers stay
-stable.
+Use it when you want a code-aware security reviewer next to the repository, not
+a cloud scanner or a black-box test runner.
 
-## Supported Inputs
+## At A Glance
 
-presecurity must support general-purpose codebases. Initial analysis coverage
-includes:
+```mermaid
+flowchart LR
+  A["Source Code"] --> B["Read"]
+  B --> C["Threat Model"]
+  C --> D["Analyze Findings"]
+  D --> E["Validate Evidence"]
+  E --> F["Report"]
+  F --> G{"Autofix?"}
+  G -->|"safe"| H["Apply narrow fixes"]
+  G -->|"review-required"| I["Apply policy-aware fixes"]
+  G -->|"blocked"| J["Apply broad fixes only when explicit"]
+  H --> K["Rescan"]
+  I --> K
+  J --> K
+  K --> F
+```
 
-- Web: JavaScript, TypeScript, React, Next.js, Vue, Svelte
-- Backend: Node.js, Python, Java, Kotlin, Go, Ruby, PHP
-- Mobile: Java, Kotlin, Swift, Objective-C, Dart, plist
-- Native: C, C++
-- Config: JSON, YAML, XML, plist, Dockerfile, Terraform, Gradle, Maven,
-  GitHub Actions, CI configuration
-- Package metadata: npm, pnpm, yarn, pip, Poetry, Gradle, Maven, pub,
-  CocoaPods, SwiftPM
+The normal scan path is:
 
-Git is optional. When Git is unavailable, presecurity treats the target as a
-local folder snapshot and identifies the run by scan id, timestamp, root path,
-and file hashes.
+```text
+read -> analyze -> report
+```
+
+Autofix is separate and explicit:
+
+```text
+read latest artifacts -> apply selected tier -> impact check -> rescan -> update report
+```
+
+## Who It Helps
+
+| User | What presecurity provides |
+| --- | --- |
+| Security engineer | Evidence, exploitability reasoning, threat score, proof gaps, and remediation tiers |
+| Developer | Exact files, root cause, safe fixes, and review-required decisions |
+| Tech lead | Prioritized risk summary and residual risk after fixes |
+| Non-specialist reviewer | A readable Markdown report with only material issues by default |
 
 ## Commands
 
-Claude Code:
+Claude:
 
 ```text
 /presecurity
@@ -124,48 +142,104 @@ Codex:
 @presecurity cleanup
 ```
 
-The `$presecurity` skill is also available for natural-language invocation in
-Codex.
+The command by itself only shows the command menu. It never starts a scan.
 
-Default command behavior:
+| Task | Claude | Codex |
+| --- | --- | --- |
+| Show commands | `/presecurity` | `@presecurity` |
+| Scan current workspace | `/presecurity scan` | `@presecurity scan` |
+| Apply safe fixes | `/presecurity autofix` | `@presecurity autofix` |
+| Include review-required fixes | `/presecurity autofix review-required` | `@presecurity autofix review-required` |
+| Include blocked fixes | `/presecurity autofix blocked` | `@presecurity autofix blocked` |
+
+Codex also exposes the `$presecurity` skill for natural-language invocation.
+
+## Product Principles
+
+- **Local-first**: no presecurity cloud service is required.
+- **Source-based**: analysis starts from the codebase, configs, manifests, and
+  dependency files.
+- **Git optional**: if Git is unavailable, scans use a local folder snapshot
+  identified by scan id, timestamp, root path, and file hashes.
+- **Material findings only**: reports prioritize realistic exploit paths and
+  meaningful remediation work.
+- **Progress-only scan output**: the screen shows concise progress while the
+  report is being written.
+- **Human-in-the-loop fixes**: anything policy-dependent, broad, or ambiguous
+  requires an explicit autofix tier.
+
+User-facing output follows the current host/user language setting. English
+settings show English command help, progress, and summaries; Korean settings
+show Korean command help, progress, and summaries. Artifact schemas, JSON keys,
+file names, command names, finding IDs, and code identifiers stay stable.
+
+## Supported Codebases
+
+presecurity targets general-purpose repositories:
+
+| Area | Coverage |
+| --- | --- |
+| Web | JavaScript, TypeScript, React, Next.js, Vue, Svelte |
+| Backend | Node.js, Python, Java, Kotlin, Go, Ruby, PHP |
+| Mobile | Java, Kotlin, Swift, Objective-C, Dart, plist |
+| Native | C, C++ |
+| Config | JSON, YAML, XML, plist, Dockerfile, Terraform, Gradle, Maven, GitHub Actions, CI |
+| Package metadata | npm, pnpm, yarn, pip, Poetry, Gradle, Maven, pub, CocoaPods, SwiftPM |
+
+## What It Detects
+
+presecurity focuses on code-level intent and exploit paths, not isolated
+function names.
+
+| ID | Category | Review focus |
+| --- | --- | --- |
+| T01 | Injection | SQL, command, NoSQL, LDAP, template, eval, expression injection |
+| T02 | Broken Authentication | Login, session, token, password, MFA, refresh rotation |
+| T03 | Broken Authorization | Role, owner, tenant, resource, admin-only checks |
+| T04 | SSRF / Unsafe Network | User-controlled URL, redirect, internal IP, metadata endpoint |
+| T05 | Secret Exposure | API keys, tokens, certificates, client secrets, checked-in creds |
+| T06 | Insecure Storage | Plain local storage of tokens, PII, secrets, private files |
+| T07 | Crypto Misuse | Weak algorithm, hardcoded key, static IV, custom crypto |
+| T08 | Deserialization | Untrusted pickle, YAML, Java serialization, PHP/Ruby marshal |
+| T09 | Path / File Access | Traversal, unsafe upload/extract/delete, arbitrary file IO |
+| T10 | XSS / HTML Injection | DOM sinks, template output, unsafe markdown/HTML rendering |
+| T11 | WebView / Client Bridge | JavaScript bridge, platform channel, untrusted content |
+| T12 | Deep Link / Intent | Unsafe intent extras, schemes, universal links, exported actions |
+| T13 | Insecure Config | Debug, cleartext, CORS wildcard, ATS exception, permissive policy |
+| T14 | Supply Chain | Dependency confusion, lockfile risk, script hooks, unsafe packages |
+| T15 | CI/CD / Build Script | Secret logging, untrusted PR execution, unsigned release paths |
+| T16 | Business Logic | Payment, quota, coupon, state transition, workflow bypass |
+| T17 | Multi-Tenant Isolation | Missing tenant filters, cross-org access, shared object leakage |
+| T18 | Logging / Error Leak | Token, PII, stack trace, internal URL, sensitive debug output |
+| T19 | Race / TOCTOU | Check/use split, replay, double submit, stale authorization |
+| T20 | Resource Abuse | Rate limit gaps, zip bombs, unbounded upload, memory/CPU pressure |
+| T21 | Native / Memory Safety | Buffer overflow, UAF, format string, unsafe pointer, integer overflow |
+| T22 | AI Agent / Tool Risk | Prompt/tool injection, overbroad file/network/shell authority |
+
+## Threat Scoring
+
+Every material finding includes a measured threat score:
 
 ```text
-show available commands only
+threatScore = likelihood x impact x reachability x exploitability x confidence
 ```
 
-Claude uses `/presecurity`; Codex uses `@presecurity`. The command by itself
-does not start a scan. Use `/presecurity scan` in Claude or
-`@presecurity scan` in Codex to run:
+| Severity | Threat score | Meaning |
+| --- | --- | --- |
+| `critical` | `>= 0.80` | Systemic compromise, tenant/data takeover, RCE, or critical secret exposure |
+| `high` | `>= 0.60` | Realistic exploit path with high security or business impact |
+| `medium` | `>= 0.35` | Plausible exploit path with scoped or conditional impact |
+| `low` | `>= 0.15` | Hardening issue or weak exploit path |
+| `info` | `< 0.15` | Context signal, not a confirmed vulnerability |
 
-```text
-read -> analyze -> report
-```
-
-A scan is not complete until `report.md` and the structured JSON artifacts are
-written.
-
-During a scan, the screen should show progress only. It should not show
-`Wrote ...`, `Created ...`, file paths, detailed findings, evidence, attack
-paths, or remediation notes while artifacts are being written. Those details
-belong in `report.md` and JSON artifacts. After the scan completes, the agent
-should print only a compact summary: artifact directory, severity totals, top
-findings, safe autofix count, review-required count, blocked count, recommended
-autofix command, and limitations.
-
-Autofix behavior:
-
-```text
-read latest artifacts -> apply safe-only fixes -> rescan -> update report
-```
-
-Command completion depends on the host. Claude exposes `/presecurity`; Codex
-exposes `@presecurity`. Both provide the argument hint
-`scan|autofix [safe|review-required|blocked]|doctor|cleanup` for hosts that
-surface command arguments.
+`findings.json` includes only `critical`, `high`, and meaningful `medium`
+findings by default. Low/info signals, speculative concerns, and missing
+context are deferred into coverage data or report limitations unless they
+materially change risk.
 
 ## Artifacts
 
-Every completed scan writes a self-contained artifact bundle:
+Every scan writes a local artifact bundle:
 
 ```text
 .presecurity/
@@ -191,120 +265,39 @@ Autofix additionally writes:
       autofix-result.json
 ```
 
-Required meanings:
-
-- `scan-manifest.json`: target, scan id, snapshot identity, language summary,
-  artifact paths, and limitations.
-- `scan-summary.json`: executive scan result with status, coverage totals,
-  severity totals, measured risk distribution, top material risks, and
-  remediation priority.
-- `repository-map.json`: files, frameworks, entry points, dependencies, config
-  surfaces, and sensitive sinks.
-- `threat-model.json`: assets, entry points, trust boundaries, auth
-  assumptions, sensitive data paths, review priorities, and scoped-out areas.
-- `findings.json`: high-signal findings only. Each finding records measured
-  threat score, severity, likelihood, impact, confidence, reachability,
-  exploitability, business impact, evidence, counterevidence, proof gaps, and
-  remediation guidance.
-- `validation/<finding-id>.json`: validation evidence for each material
-  finding, including attempted reproduction, strongest feasible exploit check,
-  legitimate-behavior checks, nearby bypass checks, and remaining proof gap.
-- `patches/<finding-id>.patch.md`: root-cause patch proposal for each accepted
-  or fixable finding, including rationale, diff summary, regression evidence,
-  rollback notes, and residual risk.
-- `coverage.json`: reviewed files, skipped files, deferred surfaces,
-  unverified claims, low-signal/deferred candidates, and limitations.
-- `report.md`: portable human-readable report generated by every scan.
-- `fix-plan.json`: safe/review-required/blocked fix classification.
-- `autofix-result.json`: exact changes applied and rescan result.
-
-## Threat Scoring
-
-presecurity should focus on real, material security risk. It should not fill
-the report with theoretical, low-impact, or unverified issues.
-
-Each finding must include a measured threat score:
-
-```text
-threatScore = likelihood x impact x reachability x exploitability x confidence
-```
-
-Use normalized `0.0` to `1.0` factors and map the result to severity:
-
-| Severity | Threat Score | Meaning |
-| --- | --- | --- |
-| `critical` | `>= 0.80` | Systemic compromise, tenant/data takeover, RCE, or critical secret exposure |
-| `high` | `>= 0.60` | Realistic exploit path with high security or business impact |
-| `medium` | `>= 0.35` | Plausible exploit path with scoped or conditional impact |
-| `low` | `>= 0.15` | Hardening issue or weak exploit path |
-| `info` | `< 0.15` | Context signal, not a confirmed vulnerability |
-
-`findings.json` should include only `critical`, `high`, and meaningful
-`medium` findings by default. Low/info signals, speculative concerns, and
-missing-context notes belong in `coverage.json.deferredSignals` or
-`report.md` limitations unless they materially change risk.
-
-Professional analysis must prioritize:
-
-- attacker-controlled entry point to sensitive sink
-- crossed trust/auth/tenant boundary
-- realistic exploit preconditions
-- business or data impact
-- validation evidence and counterevidence
-- root-cause remediation and residual risk
-
-## Threat Categories
-
-presecurity focuses on code-level intent and exploit paths, not isolated
-function names. Findings should map to one of these categories:
-
-| ID | Category | Review Focus |
-| --- | --- | --- |
-| T01 | Injection | SQL, command, NoSQL, LDAP, template, eval, expression injection |
-| T02 | Broken Authentication | Login, session, token, password, MFA, refresh rotation |
-| T03 | Broken Authorization | Role, owner, tenant, resource, admin-only action checks |
-| T04 | SSRF / Unsafe Network | User-controlled URL, redirect, internal IP, metadata endpoint |
-| T05 | Secret Exposure | API keys, tokens, certificates, client secrets, checked-in creds |
-| T06 | Insecure Storage | Plain local storage of tokens, PII, secrets, private files |
-| T07 | Crypto Misuse | Weak algorithm, hardcoded key, static IV, custom crypto |
-| T08 | Deserialization | Untrusted pickle, YAML, Java serialization, PHP/Ruby marshal |
-| T09 | Path / File Access | Traversal, unsafe upload/extract/delete, arbitrary file IO |
-| T10 | XSS / HTML Injection | DOM sinks, template output, unsafe markdown/HTML rendering |
-| T11 | WebView / Client Bridge | JavaScript bridge, platform channel, untrusted content |
-| T12 | Deep Link / Intent | Unsafe intent extras, schemes, universal links, exported actions |
-| T13 | Insecure Config | Debug, cleartext, CORS wildcard, ATS exception, permissive policy |
-| T14 | Supply Chain | Dependency confusion, lockfile risk, script hooks, unsafe packages |
-| T15 | CI/CD / Build Script | Secret logging, untrusted PR execution, unsigned release paths |
-| T16 | Business Logic | Payment, quota, coupon, state transition, workflow bypass |
-| T17 | Multi-Tenant Isolation | Missing tenant filters, cross-org access, shared object leakage |
-| T18 | Logging / Error Leak | Token, PII, stack trace, internal URL, sensitive debug output |
-| T19 | Race / TOCTOU | Check/use split, replay, double submit, stale authorization |
-| T20 | Resource Abuse | Rate limit gaps, zip bombs, unbounded upload, memory/CPU pressure |
-| T21 | Native / Memory Safety | Buffer overflow, UAF, format string, unsafe pointer, integer overflow |
-| T22 | AI Agent / Tool Risk | Prompt/tool injection, overbroad file/network/shell authority |
+| Artifact | Purpose |
+| --- | --- |
+| `scan-manifest.json` | Target, scan id, snapshot identity, language summary, paths, limitations |
+| `scan-summary.json` | Executive result, severity totals, measured risk distribution, top risks |
+| `repository-map.json` | Files, frameworks, entry points, dependencies, config surfaces, sinks |
+| `threat-model.json` | Assets, trust boundaries, auth assumptions, data paths, scoped-out areas |
+| `findings.json` | High-signal findings with score, evidence, counterevidence, proof gaps |
+| `validation/<id>.json` | Reproduction attempt, exploitability check, bypass checks, proof gap |
+| `patches/<id>.patch.md` | Root-cause patch proposal, diff summary, test plan, residual risk |
+| `coverage.json` | Reviewed files, skipped files, deferred signals, limitations |
+| `report.md` | Human-readable scan report generated by every scan |
+| `fix-plan.json` | Safe/review-required/blocked fix classification |
+| `autofix-result.json` | Applied changes, skipped items, and rescan result |
 
 ## Autofix Policy
 
 presecurity applies only safe fixes by default. Higher-risk tiers require an
-explicit autofix mode. Every finding receives an autofix status:
+explicit command.
 
-| Status | Meaning | Action |
+| Tier | Meaning | Default action |
 | --- | --- | --- |
-| `safe` | Narrow deterministic change with low behavior risk | Apply automatically |
-| `review-required` | Security policy or business intent decision needed | Apply only with the host's `autofix review-required` command or higher |
-| `blocked` | Intent unclear or fix is too broad | Apply only with the host's `autofix blocked` command |
+| `safe` | Narrow deterministic change with low behavior risk | Can be applied by default autofix |
+| `review-required` | Security policy or business intent decision needed | Requires review-required mode |
+| `blocked` | Intent unclear or fix is broad/destructive | Requires blocked mode |
 
-Autofix modes:
-
-| Claude command | Codex command | Risk tiers processed |
+| Claude command | Codex command | Tiers processed |
 | --- | --- | --- |
 | `/presecurity autofix` | `@presecurity autofix` | `safe` |
 | `/presecurity autofix safe` | `@presecurity autofix safe` | `safe` |
 | `/presecurity autofix review-required` | `@presecurity autofix review-required` | `safe` -> `review-required` |
 | `/presecurity autofix blocked` | `@presecurity autofix blocked` | `safe` -> `review-required` -> `blocked` |
 
-After every scan, recommend the highest needed autofix mode from the latest
-artifact counts:
+After every scan, presecurity recommends the highest needed autofix command:
 
 | Latest scan state | Claude recommendation | Codex recommendation |
 | --- | --- | --- |
@@ -313,51 +306,20 @@ artifact counts:
 | Only `safe` items exist | `/presecurity autofix safe` | `@presecurity autofix safe` |
 | No fixable items exist | No autofix recommended | No autofix recommended |
 
-The recommendation is advisory. It must not apply fixes automatically after
-`/presecurity scan` or `@presecurity scan`.
+The recommendation is advisory. Scan never starts autofix automatically.
 
-Every mode applies fixes sequentially. After each individual fix, presecurity
-checks impact, rescans changed files when possible, updates the finding status,
-and then continues. If an impact check fails or the diff becomes broad,
-destructive, or ambiguous, the mode stops and reports the remaining items.
+Fixes are applied sequentially. After each individual fix, presecurity checks
+impact, rescans changed files when possible, updates the finding status, and
+continues. If the diff becomes broad, destructive, or ambiguous, the mode stops.
 
-Autofix must address the root cause. It must not apply partial mitigations and
-call them fixed. For example, SSRF fixes should use a positive allowlist of
-approved destinations or a centrally enforced outbound policy; private-IP or
-metadata-host blocklists are defense-in-depth only and must not replace the
-allowlist. If the required business/security policy is unknown, presecurity
-leaves the finding unresolved and reports the missing policy input.
+Autofix must address the root cause. For example, SSRF fixes should use a
+positive allowlist of approved destinations or a centrally enforced outbound
+policy. Private-IP or metadata-host blocklists are defense-in-depth only and
+must not replace the allowlist. If the required business/security policy is
+unknown, presecurity leaves the finding unresolved and reports the missing
+policy input.
 
-Safe examples:
-
-- `yaml.load(...)` -> `yaml.safe_load(...)` when imports and call shape are
-  simple.
-- `debug=True` -> `debug=False` in production-like app entry points.
-- `verify=False` -> `verify=True` when no local/test guard exists.
-- `innerHTML = plainValue` -> `textContent = plainValue` when no HTML rendering
-  intent is present.
-- Hardcoded credential-like values -> empty placeholder plus environment
-  variable recommendation when the value is clearly synthetic or accidental.
-
-Review-required examples:
-
-- Replacing an authz model.
-- Changing payment, tenant, or workflow state transitions.
-- Designing the approved URL allowlist or outbound gateway policy.
-- Tightening Android cleartext or iOS ATS exceptions.
-- Replacing crypto used for compatibility with stored data.
-
-## Documentation
-
-- [Implementation readiness](docs/implementation-readiness.md)
-- [Development TODO](docs/development-plan.md)
-- [Supported platforms](docs/supported-platforms.md)
-- [Example vulnerable fixtures](examples/README.md)
-
-## Plugin Development Tests
-
-The `examples/` folder contains intentionally vulnerable fixtures for every
-supported platform family. Use it as the regression corpus for plugin behavior:
+## Example Use
 
 ```text
 Claude:
@@ -371,5 +333,12 @@ Codex:
 @presecurity autofix
 ```
 
-The examples are not production samples. They exist to verify finding
-categories, evidence quality, coverage artifacts, and tiered autofix behavior.
+The `examples/` folder contains intentionally vulnerable fixtures for plugin
+development tests. They are not production samples.
+
+## Documentation
+
+- [Implementation readiness](docs/implementation-readiness.md)
+- [Development TODO](docs/development-plan.md)
+- [Supported platforms](docs/supported-platforms.md)
+- [Example vulnerable fixtures](examples/README.md)
